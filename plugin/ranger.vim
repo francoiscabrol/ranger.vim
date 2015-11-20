@@ -27,6 +27,7 @@ if has('nvim')
   function! OpenRanger()
     let rangerCallback = { 'name': 'ranger' }
     function! rangerCallback.on_exit(id, code)
+      Bclose!
       try
         if filereadable('/tmp/chosenfile')
             exec 'edit ' . readfile('/tmp/chosenfile')[0]
