@@ -45,6 +45,7 @@ else
   fun! OpenRanger()
     exec "silent !ranger --choosefiles=/tmp/chosenfile " . expand("%:p:h")
     if filereadable('/tmp/chosenfile')
+      exec system('sed -ie "s/ /\\\ /g" /tmp/chosenfile')
       exec 'argadd ' . system('cat /tmp/chosenfile | tr "\\n" " "')            
       exec 'edit ' . system('head -n1 /tmp/chosenfile')
       call system('rm /tmp/chosenfile')
