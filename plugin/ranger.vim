@@ -30,21 +30,25 @@ if has('nvim')
       Bclose!
       try
         if filereadable('/tmp/chosenfile')
-            exec 'edit ' . readfile('/tmp/chosenfile')[0]
-            call system('rm /tmp/chosenfile')
+          exec system('sed -ie "s/ /\\\ /g" /tmp/chosenfile')
+          exec 'argadd ' . system('cat /tmp/chosenfile | tr "\\n" " "')
+          exec 'edit ' . system('head -n1 /tmp/chosenfile')
+          call system('rm /tmp/chosenfile')
         endif
       endtry
     endfunction
     enew
-    call termopen('ranger --choosefile=/tmp/chosenfile', rangerCallback)
+    call termopen('ranger --choosefiles=/tmp/chosenfile', rangerCallback)
     startinsert
   endfunction
 else
   fun! OpenRanger()
-    exec "silent !ranger --choosefile=/tmp/chosenfile " . expand("%:p:h")
+    exec "silent !ranger --choosefiles=/tmp/chosenfile " . expand("%:p:h")
     if filereadable('/tmp/chosenfile')
-        exec 'edit ' . system('cat /tmp/chosenfile')
-        call system('rm /tmp/chosenfile')
+      exec system('sed -ie "s/ /\\\ /g" /tmp/chosenfile')
+      exec 'argadd ' . system('cat /tmp/chosenfile | tr "\\n" " "')            
+      exec 'edit ' . system('head -n1 /tmp/chosenfile')
+      call system('rm /tmp/chosenfile')
     endif
     redraw!
   endfun
