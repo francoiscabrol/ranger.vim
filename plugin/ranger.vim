@@ -25,6 +25,7 @@
 " ================ Ranger =======================
 if has('nvim')
   function! OpenRanger()
+    let currentPath = expand("%:p:h")
     let rangerCallback = { 'name': 'ranger' }
     function! rangerCallback.on_exit(id, code)
       Bclose!
@@ -38,7 +39,7 @@ if has('nvim')
       endtry
     endfunction
     enew
-    call termopen('ranger --choosefiles=/tmp/chosenfile', rangerCallback)
+    call termopen('ranger --choosefiles=/tmp/chosenfile ' . currentPath, rangerCallback)
     startinsert
   endfunction
 else
@@ -46,7 +47,7 @@ else
     exec "silent !ranger --choosefiles=/tmp/chosenfile " . expand("%:p:h")
     if filereadable('/tmp/chosenfile')
       exec system('sed -ie "s/ /\\\ /g" /tmp/chosenfile')
-      exec 'argadd ' . system('cat /tmp/chosenfile | tr "\\n" " "')            
+      exec 'argadd ' . system('cat /tmp/chosenfile | tr "\\n" " "')
       exec 'edit ' . system('head -n1 /tmp/chosenfile')
       call system('rm /tmp/chosenfile')
     endif
