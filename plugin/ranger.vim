@@ -52,6 +52,7 @@ else
             endfor
             call delete(tmp_file_path)
         endif
+        redraw!
     endfunction
 endif
 
