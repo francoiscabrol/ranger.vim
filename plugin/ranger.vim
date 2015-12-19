@@ -23,6 +23,10 @@
 
 
 " ================ Ranger =======================
+if !exists('g:ranger_path')
+    let g:ranger_path = 'ranger'
+endif
+
 if has('nvim')
     function! OpenRanger(dir)
         let currentPath = expand(a:dir)
@@ -38,14 +42,14 @@ if has('nvim')
             endif
         endfunction
         enew
-        call termopen('ranger ' . '--choosefiles=' . shellescape(tmp_file_path) . ' ' . currentPath, rangerCallback)
+        call termopen(g:ranger_path . ' ' . '--choosefiles=' . shellescape(tmp_file_path) . ' ' . currentPath, rangerCallback)
         startinsert
     endfunction
 else
     function! OpenRanger(dir)
         let currentPath = expand(a:dir)
         let tmp_file_path = tempname()
-        exec "silent !ranger --choosefiles=" . shellescape(tmp_file_path) . ' ' .currentPath
+        exec 'silent !' . g:ranger_path . ' --choosefiles=' . shellescape(tmp_file_path) . ' ' .currentPath
         if filereadable(tmp_file_path)
             for f in readfile(tmp_file_path)
                 exec 'edit '. f
