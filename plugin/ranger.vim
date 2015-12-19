@@ -24,35 +24,36 @@
 
 " ================ Ranger =======================
 if has('nvim')
-  function! OpenRanger()
-    let currentPath = expand("%:p:h")
-    let rangerCallback = { 'name': 'ranger' }
-    function! rangerCallback.on_exit(id, code)
-      Bclose!
-      try
-        if filereadable('/tmp/chosenfile')
-          exec system('sed -ie "s/ /\\\ /g" /tmp/chosenfile')
-          exec 'argadd ' . system('cat /tmp/chosenfile | tr "\\n" " "')
-          exec 'edit ' . system('head -n1 /tmp/chosenfile')
-          call system('rm /tmp/chosenfile')
-        endif
-      endtry
+    function! OpenRanger(dir)
+        let currentPath = expand(a:dir)
+        let tmp_file_path = tempname()
+        let rangerCallback = { 'name': 'ranger' , 'tmp_file_path': tmp_file_path}
+        function! rangerCallback.on_exit(id, code)
+            bdelete!
+            if filereadable(self.tmp_file_path)
+                for f in readfile(self.tmp_file_path)
+                    exec 'edit '. f
+                endfor
+                call delete(self.tmp_file_path)
+            endif
+        endfunction
+        enew
+        call termopen('ranger ' . '--choosefiles=' . shellescape(tmp_file_path) . ' ' . currentPath, rangerCallback)
+        startinsert
     endfunction
-    enew
-    call termopen('ranger --choosefiles=/tmp/chosenfile ' . currentPath, rangerCallback)
-    startinsert
-  endfunction
 else
-  fun! OpenRanger()
-    exec "silent !ranger --choosefiles=/tmp/chosenfile " . expand("%:p:h")
-    if filereadable('/tmp/chosenfile')
-      exec system('sed -ie "s/ /\\\ /g" /tmp/chosenfile')
-      exec 'argadd ' . system('cat /tmp/chosenfile | tr "\\n" " "')
-      exec 'edit ' . system('head -n1 /tmp/chosenfile')
-      call system('rm /tmp/chosenfile')
-    endif
-    redraw!
-  endfun
+    function! OpenRanger(dir)
+        let currentPath = expand(a:dir)
+        let tmp_file_path = tempname()
+        exec "silent !ranger --choosefiles=" . shellescape(tmp_file_path) . ' ' .currentPath
+        if filereadable(tmp_file_path)
+            for f in readfile(tmp_file_path)
+                exec 'edit '. f
+            endfor
+            call delete(tmp_file_path)
+        endif
+    endfunction
 endif
 
-map <leader>f :call OpenRanger()<CR>
+map <leader>f :call OpenRanger('%:p:h')<CR>
+map <leader>F :call OpenRanger('')<CR>
