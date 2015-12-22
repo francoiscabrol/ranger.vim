@@ -41,7 +41,7 @@ if has('nvim')
                 call delete(self.tmp_file_path)
             endif
         endfunction
-        enew
+        tabnew
         call termopen(g:ranger_path . ' ' . '--choosefiles=' . shellescape(tmp_file_path) . ' ' . currentPath, rangerCallback)
         startinsert
     endfunction
