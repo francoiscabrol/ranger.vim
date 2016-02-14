@@ -3,6 +3,8 @@ Ranger.vim
 
 Ranger [](http://ranger.nongnu.org/) integration in vim and neovim
 
+![Demo](./ranger.gif)
+
 Installation
 ============
 
