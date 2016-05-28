@@ -55,4 +55,13 @@ else
   endfun
 endif
 
-map <leader>f :call OpenRanger()<CR>
+if !exists('g:ranger_map_keys')
+  let g:ranger_map_keys = 1
+endif
+
+if g:ranger_map_keys
+  map <leader>f :call OpenRanger()<CR>
+endif
+
+command Ranger call OpenRanger()
+
