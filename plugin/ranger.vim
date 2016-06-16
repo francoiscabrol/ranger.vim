@@ -63,5 +63,5 @@ if g:ranger_map_keys
   map <leader>f :call OpenRanger()<CR>
 endif
 
-command Ranger call OpenRanger()
+command! Ranger call OpenRanger()
 
