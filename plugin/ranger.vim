@@ -33,7 +33,7 @@ if has('nvim')
         if filereadable('/tmp/chosenfile')
           exec system('sed -ie "s/ /\\\ /g" /tmp/chosenfile')
           exec 'argadd ' . system('cat /tmp/chosenfile | tr "\\n" " "')
-          exec 'edit ' . system('head -n1 /tmp/chosenfile')
+          exec s:edit_cmd . system('head -n1 /tmp/chosenfile')
           call system('rm /tmp/chosenfile')
         endif
       endtry
@@ -48,19 +48,21 @@ else
     if filereadable('/tmp/chosenfile')
       exec system('sed -ie "s/ /\\\ /g" /tmp/chosenfile')
       exec 'argadd ' . system('cat /tmp/chosenfile | tr "\\n" " "')
-      exec 'edit ' . system('head -n1 /tmp/chosenfile')
+      exec s:edit_cmd . system('head -n1 /tmp/chosenfile')
       call system('rm /tmp/chosenfile')
     endif
     redraw!
   endfun
 endif
 
-if !exists('g:ranger_map_keys')
-  let g:ranger_map_keys = 1
+if !exists('g:ranger_map_keys') || g:ranger_map_keys
+  map <leader>f :call OpenRanger()<CR>
 endif
 
-if g:ranger_map_keys
-  map <leader>f :call OpenRanger()<CR>
+if exists('g:ranger_open_new_tab') && g:ranger_open_new_tab
+  let s:edit_cmd='tabedit '
+else
+  let s:edit_cmd='edit '
 endif
 
 command! Ranger call OpenRanger()
