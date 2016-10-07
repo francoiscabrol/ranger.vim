@@ -24,8 +24,8 @@
 
 " ================ Ranger =======================
 if has('nvim')
-  function! OpenRanger()
-    let currentPath = expand("%:p:h")
+  function! OpenRangerIn(path)
+    let currentPath = expand(a:path)
     let rangerCallback = { 'name': 'ranger' }
     function! rangerCallback.on_exit(id, code)
       Bclose!
@@ -43,8 +43,9 @@ if has('nvim')
     startinsert
   endfunction
 else
-  fun! OpenRanger()
-    exec "silent !ranger --choosefiles=/tmp/chosenfile " . expand("%:p:h")
+  function! OpenRangerIn(path)
+    let currentPath = expand(a:path)
+    exec "silent !ranger --choosefiles=/tmp/chosenfile " . currentPath
     if filereadable('/tmp/chosenfile')
       exec system('sed -ie "s/ /\\\ /g" /tmp/chosenfile')
       exec 'argadd ' . system('cat /tmp/chosenfile | tr "\\n" " "')
@@ -55,15 +56,22 @@ else
   endfun
 endif
 
-if !exists('g:ranger_map_keys') || g:ranger_map_keys
-  map <leader>f :call OpenRanger()<CR>
-endif
-
 if exists('g:ranger_open_new_tab') && g:ranger_open_new_tab
   let s:edit_cmd='tabedit '
 else
   let s:edit_cmd='edit '
 endif
 
-command! Ranger call OpenRanger()
+command! RangerCurrentDirectory call OpenRangerIn("%:p:h")
+command! RangerWorkingDirectory call OpenRangerIn("")
+command! Ranger RangerCurrentDirectory
+
+" For retro-compatibility
+function! OpenRanger()
+  Ranger
+endfunction
+
+if !exists('g:ranger_map_keys') || g:ranger_map_keys
+  map <leader>f :Ranger<CR>
+endif
 
