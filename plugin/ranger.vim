@@ -28,7 +28,7 @@ if has('nvim')
     let currentPath = expand(a:path)
     let rangerCallback = { 'name': 'ranger' }
     function! rangerCallback.on_exit(id, code)
-      Bclose!
+      silent! Bclose!
       try
         if filereadable('/tmp/chosenfile')
           exec system('sed -ie "s/ /\\\ /g" /tmp/chosenfile')
