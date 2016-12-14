@@ -24,7 +24,7 @@
 
 " ================ Ranger =======================
 if has('nvim')
-  function! OpenRangerIn(path)
+  function! OpenRangerIn(path, edit_cmd)
     let currentPath = expand(a:path)
     let rangerCallback = { 'name': 'ranger' }
     function! rangerCallback.on_exit(id, code)
@@ -33,7 +33,7 @@ if has('nvim')
         if filereadable('/tmp/chosenfile')
           exec system('sed -ie "s/ /\\\ /g" /tmp/chosenfile')
           exec 'argadd ' . system('cat /tmp/chosenfile | tr "\\n" " "')
-          exec s:edit_cmd . system('head -n1 /tmp/chosenfile')
+          exec a:edit_cmd . system('head -n1 /tmp/chosenfile')
           call system('rm /tmp/chosenfile')
         endif
       endtry
@@ -43,28 +43,34 @@ if has('nvim')
     startinsert
   endfunction
 else
-  function! OpenRangerIn(path)
+  function! OpenRangerIn(path, edit_cmd)
     let currentPath = expand(a:path)
     exec "silent !ranger --choosefiles=/tmp/chosenfile " . currentPath
     if filereadable('/tmp/chosenfile')
       exec system('sed -ie "s/ /\\\ /g" /tmp/chosenfile')
       exec 'argadd ' . system('cat /tmp/chosenfile | tr "\\n" " "')
-      exec s:edit_cmd . system('head -n1 /tmp/chosenfile')
+      exec a:edit_cmd . system('head -n1 /tmp/chosenfile')
       call system('rm /tmp/chosenfile')
     endif
     redraw!
   endfun
 endif
 
+" For backwards-compatibility (deprecated)
 if exists('g:ranger_open_new_tab') && g:ranger_open_new_tab
-  let s:edit_cmd='tabedit '
+  let s:default_edit_cmd='tabedit '
 else
-  let s:edit_cmd='edit '
+  let s:default_edit_cmd='edit '
 endif
 
-command! RangerCurrentDirectory call OpenRangerIn("%:p:h")
-command! RangerWorkingDirectory call OpenRangerIn("")
+command! RangerCurrentDirectory call OpenRangerIn("%:p:h", s:default_edit_cmd)
+command! RangerWorkingDirectory call OpenRangerIn("", s:default_edit_cmd)
 command! Ranger RangerCurrentDirectory
+
+" To open the selected file in a new tab
+command! RangerCurrentDirectoryNewTab call OpenRangerIn("%:p:h", 'tabedit ')
+command! RangerWorkingDirectoryNewTab call OpenRangerIn("", 'tabedit ')
+command! RangerNewTab RangerCurrentDirectoryNewTab
 
 " For retro-compatibility
 function! OpenRanger()
