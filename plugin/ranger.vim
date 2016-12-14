@@ -26,14 +26,14 @@
 if has('nvim')
   function! OpenRangerIn(path, edit_cmd)
     let currentPath = expand(a:path)
-    let rangerCallback = { 'name': 'ranger' }
+    let rangerCallback = { 'name': 'ranger', 'edit_cmd': a:edit_cmd }
     function! rangerCallback.on_exit(id, code)
       silent! Bclose!
       try
         if filereadable('/tmp/chosenfile')
           exec system('sed -ie "s/ /\\\ /g" /tmp/chosenfile')
           exec 'argadd ' . system('cat /tmp/chosenfile | tr "\\n" " "')
-          exec a:edit_cmd . system('head -n1 /tmp/chosenfile')
+          exec self.edit_cmd . system('head -n1 /tmp/chosenfile')
           call system('rm /tmp/chosenfile')
         endif
       endtry
