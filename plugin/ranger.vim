@@ -27,7 +27,7 @@ if has('nvim')
   function! OpenRangerIn(path, edit_cmd)
     let currentPath = expand(a:path)
     let rangerCallback = { 'name': 'ranger', 'edit_cmd': a:edit_cmd }
-    function! rangerCallback.on_exit(id, code)
+    function! rangerCallback.on_exit(id, code, _event)
       silent! Bclose!
       try
         if filereadable('/tmp/chosenfile')
