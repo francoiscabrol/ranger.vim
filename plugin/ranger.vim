@@ -39,13 +39,13 @@ if has('nvim')
       endtry
     endfunction
     enew
-    call termopen('ranger --choosefiles=/tmp/chosenfile ' . currentPath, rangerCallback)
+    call termopen('ranger --choosefiles=/tmp/chosenfile "' . currentPath . '"', rangerCallback)
     startinsert
   endfunction
 else
   function! OpenRangerIn(path, edit_cmd)
     let currentPath = expand(a:path)
-    exec "silent !ranger --choosefiles=/tmp/chosenfile " . currentPath
+    exec 'silent !ranger --choosefiles=/tmp/chosenfile "' . currentPath . '"'
     if filereadable('/tmp/chosenfile')
       exec system('sed -ie "s/ /\\\ /g" /tmp/chosenfile')
       exec 'argadd ' . system('cat /tmp/chosenfile | tr "\\n" " "')
