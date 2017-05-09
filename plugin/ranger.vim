@@ -64,12 +64,12 @@ else
 endif
 
 command! RangerCurrentDirectory call OpenRangerIn("%:p:h", s:default_edit_cmd)
-command! RangerWorkingDirectory call OpenRangerIn("", s:default_edit_cmd)
+command! RangerWorkingDirectory call OpenRangerIn(".", s:default_edit_cmd)
 command! Ranger RangerCurrentDirectory
 
 " To open the selected file in a new tab
 command! RangerCurrentDirectoryNewTab call OpenRangerIn("%:p:h", 'tabedit ')
-command! RangerWorkingDirectoryNewTab call OpenRangerIn("", 'tabedit ')
+command! RangerWorkingDirectoryNewTab call OpenRangerIn(".", 'tabedit ')
 command! RangerNewTab RangerCurrentDirectoryNewTab
 
 " For retro-compatibility
