@@ -39,7 +39,7 @@ if has('nvim')
       endtry
     endfunction
     enew
-    call termopen('ranger --choosefiles=/tmp/chosenfile "' . currentPath . '"', rangerCallback)
+    call termopen('ranger --choosefiles=/tmp/chosenfile --selectfile="' . currentPath . '"', rangerCallback)
     startinsert
   endfunction
 else
@@ -63,9 +63,10 @@ else
   let s:default_edit_cmd='edit '
 endif
 
+command! RangerCurrentFile call OpenRangerIn("%", s:default_edit_cmd)
 command! RangerCurrentDirectory call OpenRangerIn("%:p:h", s:default_edit_cmd)
 command! RangerWorkingDirectory call OpenRangerIn(".", s:default_edit_cmd)
-command! Ranger RangerCurrentDirectory
+command! Ranger RangerCurrentFile
 
 " To open the selected file in a new tab
 command! RangerCurrentDirectoryNewTab call OpenRangerIn("%:p:h", 'tabedit ')
