@@ -90,11 +90,13 @@ function! OpenRangerOnVimLoadDir(argv_path)
 endfunction
 
 " To open ranger when vim load a directory
-augroup ReplaceNetrwByRangerVim
-  autocmd VimEnter * silent! autocmd! FileExplorer
-  autocmd StdinReadPre * let s:std_in=1
-  autocmd VimEnter * if argc() == 1 && isdirectory(argv()[0]) && !exists("s:std_in") | call OpenRangerOnVimLoadDir(argv()[0]) | endif
-augroup END
+if exists('g:ranger_replace_netrw') && g:ranger_replace_netrw
+  augroup ReplaceNetrwByRangerVim
+    autocmd VimEnter * silent! autocmd! FileExplorer
+    autocmd StdinReadPre * let s:std_in=1
+    autocmd VimEnter * if argc() == 1 && isdirectory(argv()[0]) && !exists("s:std_in") | call OpenRangerOnVimLoadDir(argv()[0]) | endif
+  augroup END
+endif
 
 if !exists('g:ranger_map_keys') || g:ranger_map_keys
   map <leader>f :Ranger<CR>
