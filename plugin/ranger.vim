@@ -78,6 +78,26 @@ function! OpenRanger()
   Ranger
 endfunction
 
+" Open Ranger in the directory passed by argument
+function! OpenRangerOnVimLoadDir(argv_path)
+  " Open Ranger
+	let path = expand(a:argv_path)
+  call OpenRangerIn(path, "edit")
+
+  " Delete the empty buffer created by vim
+  exec "bp"
+  exec "bd!"
+endfunction
+
+" To open ranger when vim load a directory
+if exists('g:ranger_replace_netrw') && g:ranger_replace_netrw
+  augroup ReplaceNetrwByRangerVim
+    autocmd VimEnter * silent! autocmd! FileExplorer
+    autocmd StdinReadPre * let s:std_in=1
+    autocmd VimEnter * if argc() == 1 && isdirectory(argv()[0]) && !exists("s:std_in") | call OpenRangerOnVimLoadDir(argv()[0]) | endif
+  augroup END
+endif
+
 if !exists('g:ranger_map_keys') || g:ranger_map_keys
   map <leader>f :Ranger<CR>
 endif
