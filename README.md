@@ -19,7 +19,7 @@ If you use neovim, you have to add the dependency to the plugin bclose.vim:
 How to use it
 =============
 
-The default shortcut for opening Ranger is <leader>f (\f by default)
+The default shortcut for opening Ranger is `<leader>f` (\f by default)
 To disable the default key mapping, add this line in your .vimrc or init.vim: `let g:ranger_map_keys = 0`
 
 then you can add a new mapping with this line: `map <leader>f :Ranger<CR>`.
