@@ -45,7 +45,7 @@ if has('nvim')
 else
   function! OpenRangerIn(path, edit_cmd)
     let currentPath = expand(a:path)
-    exec 'silent !ranger --choosefiles=/tmp/chosenfile "' . currentPath . '"'
+    exec 'silent !ranger --choosefiles=/tmp/chosenfile --selectfile="' . currentPath . '"'
     if filereadable('/tmp/chosenfile')
       exec system('sed -ie "s/ /\\\ /g" /tmp/chosenfile')
       exec 'argadd ' . system('cat /tmp/chosenfile | tr "\\n" " "')
