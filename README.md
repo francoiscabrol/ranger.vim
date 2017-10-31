@@ -35,3 +35,10 @@ Vim will open the selected file in the current window.
 The old way to make vim open the selected file in a new tab was to add
 `let g:ranger_open_new_tab = 1` in your .vimrc or init.vim. That way is still
 supported but deprecated.
+
+If you want to see vim opening ranger when you open a directory (ex: nvim ./dir), please add this in your .(n)vimrc.
+```
+let g:NERDTreeHijackNetrw = 0 // add this line if you use NERDTree
+let g:ranger_replace_netrw = 1 // open ranger when vim open a directory
+```
+
