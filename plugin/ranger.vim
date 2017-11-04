@@ -69,6 +69,7 @@ command! RangerWorkingDirectory call OpenRangerIn(".", s:default_edit_cmd)
 command! Ranger RangerCurrentFile
 
 " To open the selected file in a new tab
+command! RangerCurrentFileNewTab call OpenRangerIn("%", 'tabedit ')
 command! RangerCurrentDirectoryNewTab call OpenRangerIn("%:p:h", 'tabedit ')
 command! RangerWorkingDirectoryNewTab call OpenRangerIn(".", 'tabedit ')
 command! RangerNewTab RangerCurrentDirectoryNewTab
