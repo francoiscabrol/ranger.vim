@@ -32,6 +32,19 @@ For opening Ranger in the current workspace, run `:RangerWorkingDirectory`.
 Vim will open the selected file in the current window.
 `:RangerWorkingDirectoryNewTab` will open the selected file in a new tab instead.
 
+List of commands:
+```
+Ranger // open current file by default
+RangerCurrentFile // Default Ranger behaviour
+RangerCurrentDirectory
+RangerWorkingDirectory
+
+RangerNewTab
+RangerCurrentFileNewTab
+RangerCurrentDirectoryNewTab
+RangerWorkingDirectoryNewTab
+```
+
 The old way to make vim open the selected file in a new tab was to add
 `let g:ranger_open_new_tab = 1` in your .vimrc or init.vim. That way is still
 supported but deprecated.
