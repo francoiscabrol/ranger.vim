@@ -39,7 +39,11 @@ if has('nvim')
       endtry
     endfunction
     enew
-    call termopen('ranger --choosefiles=/tmp/chosenfile --selectfile="' . currentPath . '"', rangerCallback)
+    if isdirectory(currentPath)
+      call termopen('ranger --choosefiles=/tmp/chosenfile "' . currentPath . '"', rangerCallback)
+    else
+      call termopen('ranger --choosefiles=/tmp/chosenfile --selectfile="' . currentPath . '"', rangerCallback)
+    endif
     startinsert
   endfunction
 else
