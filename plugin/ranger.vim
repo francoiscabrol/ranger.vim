@@ -23,6 +23,21 @@
 
 
 " ================ Ranger =======================
+if exists('g:ranger_choice_file')
+  if empty(glob(g:ranger_choice_file))
+    let s:choice_file_path = g:ranger_choice_file
+  else
+    echom "Message from *Ranger.vim* :"
+    echom "You've set the g:ranger_choice_file variable."
+    echom "Please use the path for a file that does not already exist."
+    echom "Using /tmp/chosenfile for now..."
+  endif
+endif
+
+if !exists('s:choice_file_path')
+  let s:choice_file_path = '/tmp/chosenfile'
+endif
+
 if has('nvim')
   function! OpenRangerIn(path, edit_cmd)
     let currentPath = expand(a:path)
@@ -30,31 +45,31 @@ if has('nvim')
     function! rangerCallback.on_exit(id, code, _event)
       silent! Bclose!
       try
-        if filereadable('/tmp/chosenfile')
-          exec system('sed -ie "s/ /\\\ /g" /tmp/chosenfile')
-          exec 'argadd ' . system('cat /tmp/chosenfile | tr "\\n" " "')
-          exec self.edit_cmd . system('head -n1 /tmp/chosenfile')
-          call system('rm /tmp/chosenfile')
+        if filereadable(s:choice_file_path)
+          exec system('sed -ie "s/ /\\\ /g" ' . s:choice_file_path)
+          exec 'argadd ' . system('cat ' . s:choice_file_path . ' | tr "\\n" " "')
+          exec self.edit_cmd . system('head -n1 ' . s:choice_file_path)
+          call system('rm ' . s:choice_file_path)
         endif
       endtry
     endfunction
     enew
     if isdirectory(currentPath)
-      call termopen('ranger --choosefiles=/tmp/chosenfile "' . currentPath . '"', rangerCallback)
+      call termopen('ranger --choosefiles=' . s:choice_file_path . ' "' . currentPath . '"', rangerCallback)
     else
-      call termopen('ranger --choosefiles=/tmp/chosenfile --selectfile="' . currentPath . '"', rangerCallback)
+      call termopen('ranger --choosefiles=' . s:choice_file_path . ' --selectfile="' . currentPath . '"', rangerCallback)
     endif
     startinsert
   endfunction
 else
   function! OpenRangerIn(path, edit_cmd)
     let currentPath = expand(a:path)
-    exec 'silent !ranger --choosefiles=/tmp/chosenfile --selectfile="' . currentPath . '"'
-    if filereadable('/tmp/chosenfile')
-      exec system('sed -ie "s/ /\\\ /g" /tmp/chosenfile')
-      exec 'argadd ' . system('cat /tmp/chosenfile | tr "\\n" " "')
-      exec a:edit_cmd . system('head -n1 /tmp/chosenfile')
-      call system('rm /tmp/chosenfile')
+    exec 'silent !ranger --choosefiles=' . s:choice_file_path . ' --selectfile="' . currentPath . '"'
+    if filereadable(s:choice_file_path)
+      exec system('sed -ie "s/ /\\\ /g" ' . s:choice_file_path)
+      exec 'argadd ' . system('cat ' . s:choice_file_path . ' | tr "\\n" " "')
+      exec a:edit_cmd . system('head -n1 ' . s:choice_file_path)
+      call system('rm ' . s:choice_file_path)
     endif
     redraw!
   endfun
@@ -86,7 +101,7 @@ endfunction
 " Open Ranger in the directory passed by argument
 function! OpenRangerOnVimLoadDir(argv_path)
   " Open Ranger
-	let path = expand(a:argv_path)
+  let path = expand(a:argv_path)
   call OpenRangerIn(path, "edit")
 
   " Delete the empty buffer created by vim
