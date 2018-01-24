@@ -54,8 +54,8 @@ If you want to see vim opening ranger when you open a directory (ex: nvim ./dir)
 let g:NERDTreeHijackNetrw = 0 // add this line if you use NERDTree
 let g:ranger_replace_netrw = 1 // open ranger when vim open a directory
 ```
-The Ranger binary uses a temporary file to store the path that was chosen. This can be a problem
-if you do not have write permissions for the `/tmp` directory, for example on Android.
+Ranger.vim uses a temporary file to store the path that was chosen, `/tmp/chosenfile` by default.
+This can be a problem if you do not have write permissions for the `/tmp` directory, for example on Android.
 There is a configuration variable for this called `g:ranger_choice_file`, this must be set to the
 path for a file that doesn't yet exist (this file is created when choosing a file and removed afterwards).
 
