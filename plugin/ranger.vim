@@ -42,8 +42,10 @@ if has('nvim')
   function! OpenRangerIn(path, edit_cmd)
     let currentPath = expand(a:path)
     let rangerCallback = { 'name': 'ranger', 'edit_cmd': a:edit_cmd }
-    function! rangerCallback.on_exit(id, code, _event)
-      silent! Bclose!
+    function! rangerCallback.on_exit(job_id, code, event)
+      if a:code == 0
+        silent! Bclose!
+      endif
       try
         if filereadable(s:choice_file_path)
           exec system('sed -ie "s/ /\\\ /g" ' . s:choice_file_path)
