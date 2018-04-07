@@ -49,11 +49,15 @@ The old way to make vim open the selected file in a new tab was to add
 `let g:ranger_open_new_tab = 1` in your .vimrc or init.vim. That way is still
 supported but deprecated.
 
+### Opening ranger instead of netrw when you open a directory
+** currently works with neovim only ** (see the issue #45) 
 If you want to see vim opening ranger when you open a directory (ex: nvim ./dir), please add this in your .(n)vimrc.
 ```
 let g:NERDTreeHijackNetrw = 0 // add this line if you use NERDTree
 let g:ranger_replace_netrw = 1 // open ranger when vim open a directory
 ```
+
+### Setting an other path for the temporary file
 Ranger.vim uses a temporary file to store the path that was chosen, `/tmp/chosenfile` by default.
 This can be a problem if you do not have write permissions for the `/tmp` directory, for example on Android.
 There is a configuration variable for this called `g:ranger_choice_file`, this must be set to the
