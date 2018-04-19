@@ -6,7 +6,7 @@ Ranger.vim
 ![Demo](./ranger.gif)
 
 Installation
-============
+------------
 
 Install it with your favorite plugin manager. Example with vim-plug:
 
@@ -17,7 +17,7 @@ If you use neovim, you have to add the dependency to the plugin bclose.vim:
         Plug 'rbgrouleff/bclose.vim'
 
 How to use it
-=============
+-------------
 
 The default shortcut for opening Ranger is `<leader>f` (\f by default)
 To disable the default key mapping, add this line in your .vimrc or init.vim: `let g:ranger_map_keys = 0`
@@ -63,4 +63,8 @@ This can be a problem if you do not have write permissions for the `/tmp` direct
 There is a configuration variable for this called `g:ranger_choice_file`, this must be set to the
 path for a file that doesn't yet exist (this file is created when choosing a file and removed afterwards).
 
+## Common issues
 
+### Using fish shell (issue #42)
+Solution: if you use something else than bash or zsh you should probably need to add this line in your .vimrc:
+`set shell=bash`
