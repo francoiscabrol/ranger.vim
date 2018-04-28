@@ -39,9 +39,9 @@ if !exists('s:choice_file_path')
 endif
 
 if has('nvim')
-  function! OpenRangerIn(path, edit_cmd)
+  function! OpenRangerIn(path, edit_cmd, close_prev)
     let currentPath = expand(a:path)
-    let rangerCallback = { 'name': 'ranger', 'edit_cmd': a:edit_cmd }
+    let rangerCallback = { 'name': 'ranger', 'edit_cmd': a:edit_cmd, 'close_prev': a:close_prev }
     function! rangerCallback.on_exit(job_id, code, event)
       if a:code == 0
         silent! Bclose!
@@ -54,6 +54,10 @@ if has('nvim')
           call system('rm ' . s:choice_file_path)
         endif
       endtry
+      if self.close_prev == 1
+        exec "bp"
+        exec "bd!"
+      endif
     endfunction
     enew
     if isdirectory(currentPath)
@@ -84,15 +88,15 @@ else
   let s:default_edit_cmd='edit '
 endif
 
-command! RangerCurrentFile call OpenRangerIn("%", s:default_edit_cmd)
-command! RangerCurrentDirectory call OpenRangerIn("%:p:h", s:default_edit_cmd)
-command! RangerWorkingDirectory call OpenRangerIn(".", s:default_edit_cmd)
+command! RangerCurrentFile call OpenRangerIn("%", s:default_edit_cmd, 0)
+command! RangerCurrentDirectory call OpenRangerIn("%:p:h", s:default_edit_cmd, 0)
+command! RangerWorkingDirectory call OpenRangerIn(".", s:default_edit_cmd, 0)
 command! Ranger RangerCurrentFile
 
 " To open the selected file in a new tab
-command! RangerCurrentFileNewTab call OpenRangerIn("%", 'tabedit ')
-command! RangerCurrentDirectoryNewTab call OpenRangerIn("%:p:h", 'tabedit ')
-command! RangerWorkingDirectoryNewTab call OpenRangerIn(".", 'tabedit ')
+command! RangerCurrentFileNewTab call OpenRangerIn("%", 'tabedit ', 0)
+command! RangerCurrentDirectoryNewTab call OpenRangerIn("%:p:h", 'tabedit ', 0)
+command! RangerWorkingDirectoryNewTab call OpenRangerIn(".", 'tabedit ', 0)
 command! RangerNewTab RangerCurrentDirectoryNewTab
 
 " For retro-compatibility
@@ -102,13 +106,15 @@ endfunction
 
 " Open Ranger in the directory passed by argument
 function! OpenRangerOnVimLoadDir(argv_path)
-  " Open Ranger
-  let path = expand(a:argv_path)
-  call OpenRangerIn(path, "edit")
 
-  " Delete the empty buffer created by vim
+  " Delete empty buffer created by vim
   exec "bp"
   exec "bd!"
+
+  " Open Ranger
+  let path = expand(a:argv_path)
+  call OpenRangerIn(path, "edit", 1)
+
 endfunction
 
 " To open ranger when vim load a directory
