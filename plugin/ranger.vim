@@ -48,10 +48,10 @@ if has('nvim')
       endif
       try
         if filereadable(s:choice_file_path)
-          exec system('sed -ie "s/ /\\\ /g" ' . s:choice_file_path)
-          exec 'argadd ' . system('cat ' . s:choice_file_path . ' | tr "\\n" " "')
-          exec self.edit_cmd . system('head -n1 ' . s:choice_file_path)
-          call system('rm ' . s:choice_file_path)
+          for f in readfile(s:choice_file_path)
+            exec self.edit_cmd . f
+          endfor
+          call delete(s:choice_file_path)
         endif
       endtry
       if self.close_prev == 1
@@ -68,14 +68,14 @@ if has('nvim')
     startinsert
   endfunction
 else
-  function! OpenRangerIn(path, edit_cmd)
+  function! OpenRangerIn(path, edit_cmd, _close_prev)
     let currentPath = expand(a:path)
     exec 'silent !ranger --choosefiles=' . s:choice_file_path . ' --selectfile="' . currentPath . '"'
     if filereadable(s:choice_file_path)
-      exec system('sed -ie "s/ /\\\ /g" ' . s:choice_file_path)
-      exec 'argadd ' . system('cat ' . s:choice_file_path . ' | tr "\\n" " "')
-      exec a:edit_cmd . system('head -n1 ' . s:choice_file_path)
-      call system('rm ' . s:choice_file_path)
+      for f in readfile(s:choice_file_path)
+        exec a:edit_cmd . f
+      endfor
+      call delete(s:choice_file_path)
     endif
     redraw!
   endfun
