@@ -66,7 +66,11 @@ if has('nvim')
 else
   function! OpenRangerIn(path, edit_cmd)
     let currentPath = expand(a:path)
-    exec 'silent !ranger --choosefiles=' . s:choice_file_path . ' --selectfile="' . currentPath . '"'
+    if isdirectory(currentPath)
+      silent exec '!ranger --choosefiles=' . s:choice_file_path . ' "' . currentPath . '"'
+    else
+      silent exec '!ranger --choosefiles=' . s:choice_file_path . ' --selectfile="' . currentPath . '"'
+    endif
     if filereadable(s:choice_file_path)
       for f in readfile(s:choice_file_path)
         exec a:edit_cmd . f
