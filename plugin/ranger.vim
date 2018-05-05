@@ -109,7 +109,7 @@ function! OpenRangerOnVimLoadDir(argv_path)
   let path = expand(a:argv_path)
 
   " Delete empty buffer created by vim
-  exec "bd!"
+  Bclose!
 
   " Open Ranger
   call OpenRangerIn(path, 'edit')
