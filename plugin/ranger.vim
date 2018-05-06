@@ -34,6 +34,12 @@ if exists('g:ranger_choice_file')
   endif
 endif
 
+if exists('g:ranger_command_override')
+  let s:ranger_command = g:ranger_command_override
+else
+  let s:ranger_command = 'ranger'
+endif
+
 if !exists('s:choice_file_path')
   let s:choice_file_path = '/tmp/chosenfile'
 endif
@@ -57,9 +63,9 @@ if has('nvim')
     endfunction
     enew
     if isdirectory(currentPath)
-      call termopen('ranger --choosefiles=' . s:choice_file_path . ' "' . currentPath . '"', rangerCallback)
+      call termopen(s:ranger_command . ' --choosefiles=' . s:choice_file_path . ' "' . currentPath . '"', rangerCallback)
     else
-      call termopen('ranger --choosefiles=' . s:choice_file_path . ' --selectfile="' . currentPath . '"', rangerCallback)
+      call termopen(s:ranger_command . ' --choosefiles=' . s:choice_file_path . ' --selectfile="' . currentPath . '"', rangerCallback)
     endif
     startinsert
   endfunction
@@ -67,9 +73,9 @@ else
   function! OpenRangerIn(path, edit_cmd)
     let currentPath = expand(a:path)
     if isdirectory(currentPath)
-      silent exec '!ranger --choosefiles=' . s:choice_file_path . ' "' . currentPath . '"'
+      silent exec '!' . s:ranger_command . ' --choosefiles=' . s:choice_file_path . ' "' . currentPath . '"'
     else
-      silent exec '!ranger --choosefiles=' . s:choice_file_path . ' --selectfile="' . currentPath . '"'
+      silent exec '!' . s:ranger_command . ' --choosefiles=' . s:choice_file_path . ' --selectfile="' . currentPath . '"'
     endif
     if filereadable(s:choice_file_path)
       for f in readfile(s:choice_file_path)
