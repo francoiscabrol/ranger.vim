@@ -119,7 +119,6 @@ endfunction
 if exists('g:ranger_replace_netrw') && g:ranger_replace_netrw
   augroup ReplaceNetrwByRangerVim
     autocmd VimEnter * silent! autocmd! FileExplorer
-    autocmd StdinReadPre * let s:std_in=1
     autocmd BufEnter * if isdirectory(expand("%")) | call OpenRangerOnVimLoadDir("%") | endif
   augroup END
 endif
