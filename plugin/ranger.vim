@@ -78,6 +78,9 @@ else
       call delete(s:choice_file_path)
     endif
     redraw!
+    " reset the filetype to fix the issue that happens
+    " when opening ranger on VimEnter (with `vim .`)
+    filetype detect
   endfun
 endif
 
