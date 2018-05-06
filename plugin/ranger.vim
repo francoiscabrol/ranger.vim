@@ -40,11 +40,15 @@ endif
 
 if has('nvim')
   function! OpenRangerIn(path, edit_cmd)
+    let currentAlternateFile = expand('#')
+    let currentFile = expand('%')
     let currentPath = expand(a:path)
     let rangerCallback = { 'name': 'ranger', 'edit_cmd': a:edit_cmd }
     function! rangerCallback.on_exit(job_id, code, event)
       if a:code == 0
         silent! Bclose!
+        execute 'buffer ' . self.currentAlternateFile
+        execute 'buffer ' . self.currentFile
       endif
       try
         if filereadable(s:choice_file_path)
@@ -57,9 +61,11 @@ if has('nvim')
     endfunction
     enew
     if isdirectory(currentPath)
-      call termopen('ranger --choosefiles=' . s:choice_file_path . ' "' . currentPath . '"', rangerCallback)
+      call termopen('ranger --choosefiles=' . s:choice_file_path . ' "' . currentPath . '"',
+            \extend({'currentAlternateFile': currentAlternateFile, 'currentFile': currentFile}, rangerCallback))
     else
-      call termopen('ranger --choosefiles=' . s:choice_file_path . ' --selectfile="' . currentPath . '"', rangerCallback)
+      call termopen('ranger --choosefiles=' . s:choice_file_path . ' --selectfile="' . currentPath . '"',
+            \extend({'currentAlternateFile': currentAlternateFile, 'currentFile': currentFile}, rangerCallback))
     endif
     startinsert
   endfunction
