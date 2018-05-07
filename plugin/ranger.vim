@@ -48,10 +48,9 @@ if has('nvim')
           \'currentFile': expand('%')
           \}
     function! rangerCallback.on_exit(job_id, code, event)
+      tabclose
       if a:code == 0
         silent! Bclose!
-        silent! execute 'buffer ' . self.currentAlternateFile
-        silent! execute 'buffer ' . self.currentFile
       endif
       try
         if filereadable(s:choice_file_path)
@@ -59,13 +58,19 @@ if has('nvim')
             exec self.edit_cmd . f
           endfor
           call delete(s:choice_file_path)
+        else
+          echom 'avd'
+          silent! execute 'buffer ' . self.currentAlternateFile
+          silent! execute 'buffer ' . self.currentFile
         endif
       endtry
     endfunction
     enew
     if isdirectory(currentPath)
+      tabnew
       call termopen('ranger --choosefiles=' . s:choice_file_path . ' "' . currentPath . '"', rangerCallback)
     else
+      tabnew
       call termopen('ranger --choosefiles=' . s:choice_file_path . ' --selectfile="' . currentPath . '"', rangerCallback)
     endif
     startinsert
