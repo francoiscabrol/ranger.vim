@@ -48,7 +48,6 @@ if has('nvim')
           \'currentFile': expand('%')
           \}
     function! rangerCallback.on_exit(job_id, code, event)
-      tabclose
       if a:code == 0
         silent! Bclose!
       endif
@@ -66,10 +65,8 @@ if has('nvim')
     endfunction
     enew
     if isdirectory(currentPath)
-      tabnew
       call termopen('ranger --choosefiles=' . s:choice_file_path . ' "' . currentPath . '"', rangerCallback)
     else
-      tabnew
       call termopen('ranger --choosefiles=' . s:choice_file_path . ' --selectfile="' . currentPath . '"', rangerCallback)
     endif
     startinsert
