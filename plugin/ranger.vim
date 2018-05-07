@@ -59,7 +59,6 @@ if has('nvim')
           endfor
           call delete(s:choice_file_path)
         else
-          echom 'avd'
           silent! execute 'buffer ' . self.currentAlternateFile
           silent! execute 'buffer ' . self.currentFile
         endif
