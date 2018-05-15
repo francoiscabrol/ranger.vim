@@ -41,17 +41,47 @@ endif
 if has('nvim')
   function! OpenRangerIn(path, edit_cmd)
     let currentPath = expand(a:path)
-    let rangerCallback = { 'name': 'ranger', 'edit_cmd': a:edit_cmd }
+    let rangerCallback = {
+          \'name': 'ranger',
+          \'edit_cmd': a:edit_cmd,
+          \'oldAltBuffer': bufnr('#'),
+          \'oldBuffer': bufnr('%'),
+          \'oldPath': expand('%')
+          \}
     function! rangerCallback.on_exit(job_id, code, event)
-      if a:code == 0
-        silent! Bclose!
-      endif
+      let rangerBuff = bufnr('%')
       try
         if filereadable(s:choice_file_path)
           for f in readfile(s:choice_file_path)
             exec self.edit_cmd . f
           endfor
           call delete(s:choice_file_path)
+          let a:newFileBuff = bufnr('%')
+          if isdirectory(self.oldPath)
+            "Then it should remove this previous buffer
+            silent! execute 'bdelete! '. self.oldBuffer
+          else
+            silent! execute 'buffer '. self.oldBuffer
+            silent! execute 'buffer '.a:newFileBuff
+          endif
+          execute 'bdelete! '.rangerBuff
+        else
+          if a:code == 0
+            silent! execute 'buffer '. self.oldAltBuffer
+            "if the previous buffer is a directory, it means that ranger ran
+            "while opening vim
+            if isdirectory(self.oldPath)
+              "Then it should remove this previous buffer
+              silent! execute 'bdelete! '. self.oldBuffer
+              "and then opening a new empty one
+              enew
+            "but in any other case
+            else
+              "it should move back to the previous buffer
+              silent! execute 'buffer '. self.oldBuffer
+            endif
+            execute 'bdelete! '.rangerBuff
+          endif
         endif
       endtry
     endfunction
@@ -108,8 +138,6 @@ endfunction
 function! OpenRangerOnVimLoadDir(argv_path)
   let path = expand(a:argv_path)
 
-  " Delete empty buffer created by vim
-  Bclose!
 
   " Open Ranger
   call OpenRangerIn(path, 'edit')
@@ -127,4 +155,3 @@ endif
 if !exists('g:ranger_map_keys') || g:ranger_map_keys
   map <leader>f :Ranger<CR>
 endif
-
