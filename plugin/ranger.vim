@@ -49,24 +49,33 @@ if has('nvim')
           \'oldPath': expand('%')
           \}
     function! rangerCallback.on_exit(job_id, code, event)
+      " Store the ranger buffer number for later
       let rangerBuff = bufnr('%')
-      try
-        if filereadable(s:choice_file_path)
-          for f in readfile(s:choice_file_path)
-            exec self.edit_cmd . f
-          endfor
-          call delete(s:choice_file_path)
-          let a:newFileBuff = bufnr('%')
-          if isdirectory(self.oldPath)
-            "Then it should remove this previous buffer
-            silent! execute 'bdelete! '. self.oldBuffer
+      "if ranger was closed regularly by selecting a file or quitting
+      if a:code == 0
+        try
+          "try to read the file containing the choisen files list
+          if filereadable(s:choice_file_path)
+            "Open all the selected files
+            for f in readfile(s:choice_file_path)
+              exec self.edit_cmd . f
+            endfor
+            "delete the temporary file
+            call delete(s:choice_file_path)
+            "store the last opened buffer number for later
+            let a:newFileBuff = bufnr('%')
+            "if the old buffer was a directory
+            if isdirectory(self.oldPath)
+              "Then it should remove this buffer
+              silent! execute 'bdelete! '. self.oldBuffer
+            else
+              "but else it should select the old and then the last buffer to
+              "set correctly the buffer list
+              silent! execute 'buffer '. self.oldBuffer
+              silent! execute 'buffer '.a:newFileBuff
+            endif
           else
-            silent! execute 'buffer '. self.oldBuffer
-            silent! execute 'buffer '.a:newFileBuff
-          endif
-          execute 'bdelete! '.rangerBuff
-        else
-          if a:code == 0
+            "Select the old alternate buffer (before opening ranger)
             silent! execute 'buffer '. self.oldAltBuffer
             "if the previous buffer is a directory, it means that ranger ran
             "while opening vim
@@ -80,10 +89,16 @@ if has('nvim')
               "it should move back to the previous buffer
               silent! execute 'buffer '. self.oldBuffer
             endif
-            execute 'bdelete! '.rangerBuff
           endif
-        endif
-      endtry
+        endtry
+        "finally it remove the ranger's buffer
+        execute 'bdelete! '.rangerBuff
+      "if ranger was close by 'bd'
+      else
+        silent! execute 'bdelete! '. self.oldBuffer
+        enew
+        execute 'bdelete! '.rangerBuff
+      endif
     endfunction
     enew
     if isdirectory(currentPath)
