@@ -47,7 +47,12 @@ endif
 if has('nvim')
   function! OpenRangerIn(path, edit_cmd)
     let currentPath = expand(a:path)
-    let rangerCallback = { 'name': 'ranger', 'edit_cmd': a:edit_cmd }
+    let rangerCallback = {
+          \'name': 'ranger',
+          \'edit_cmd': a:edit_cmd,
+          \'currentAlternateFile': expand('#'),
+          \'currentFile': expand('%')
+          \}
     function! rangerCallback.on_exit(job_id, code, event)
       if a:code == 0
         silent! Bclose!
@@ -58,6 +63,9 @@ if has('nvim')
             exec self.edit_cmd . f
           endfor
           call delete(s:choice_file_path)
+        else
+          silent! execute 'buffer ' . self.currentAlternateFile
+          silent! execute 'buffer ' . self.currentFile
         endif
       endtry
     endfunction
