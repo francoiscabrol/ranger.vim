@@ -54,7 +54,7 @@ if has('nvim')
       "if ranger was closed regularly by selecting a file or quitting
       if a:code == 0
         try
-          "try to read the file containing the choisen files list
+          "try to read the file containing the chosen files list
           if filereadable(s:choice_file_path)
             "Open all the selected files
             for f in readfile(s:choice_file_path)
@@ -70,23 +70,28 @@ if has('nvim')
               silent! execute 'bdelete! '. self.oldBuffer
             else
               "but else it should select the old and then the last buffer to
-              "set correctly the buffer list
+              "set correctly the alternate buffer
               silent! execute 'buffer '. self.oldBuffer
               silent! execute 'buffer '.a:newFileBuff
             endif
           else
-            "Select the old alternate buffer (before opening ranger)
-            silent! execute 'buffer '. self.oldAltBuffer
-            "if the previous buffer is a directory, it means that ranger ran
-            "while opening vim
+            "Then check if the previous buffer is a directory
+            "it means that ranger ran while opening vim
             if isdirectory(self.oldPath)
               "Then it should remove this previous buffer
               silent! execute 'bdelete! '. self.oldBuffer
-              "and then opening a new empty one
-              enew
+              if self.oldAltBuffer
+                "select the old alternate buffer (before opening ranger)
+                silent! execute 'buffer '. self.oldAltBuffer
+              else
+                "or open a new empty one
+                enew
+              endif
             "but in any other case
             else
-              "it should move back to the previous buffer
+              "Select the old alternate buffer (before opening ranger)
+              silent! execute 'buffer '. self.oldAltBuffer
+              "Then move back to the previous buffer
               silent! execute 'buffer '. self.oldBuffer
             endif
           endif
