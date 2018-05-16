@@ -50,7 +50,7 @@ if has('nvim')
     let rangerCallback = { 'name': 'ranger', 'edit_cmd': a:edit_cmd }
     function! rangerCallback.on_exit(job_id, code, event)
       if a:code == 0
-        silent! Bclose!
+        silent! bdelete!
       endif
       try
         if filereadable(s:choice_file_path)
@@ -61,11 +61,13 @@ if has('nvim')
         endif
       endtry
     endfunction
-    enew
+    tabnew
     if isdirectory(currentPath)
       call termopen(s:ranger_command . ' --choosefiles=' . s:choice_file_path . ' "' . currentPath . '"', rangerCallback)
+      silent! execute 'file RANGER'
     else
       call termopen(s:ranger_command . ' --choosefiles=' . s:choice_file_path . ' --selectfile="' . currentPath . '"', rangerCallback)
+      silent! execute 'file RANGER'
     endif
     startinsert
   endfunction
