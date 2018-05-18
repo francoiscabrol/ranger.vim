@@ -65,10 +65,8 @@ if has('nvim')
     if isdirectory(currentPath)
       call termopen(s:ranger_command . ' --choosefiles=' . s:choice_file_path . ' "' . currentPath . '"', rangerCallback)
       " change buffer name for a nicer statusline and tabline
-      silent! execute 'file RANGER'
     else
       call termopen(s:ranger_command . ' --choosefiles=' . s:choice_file_path . ' --selectfile="' . currentPath . '"', rangerCallback)
-      silent! execute 'file RANGER'
     endif
     startinsert
   endfunction
