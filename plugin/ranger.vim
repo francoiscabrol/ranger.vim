@@ -23,14 +23,16 @@
 
 
 " ================ Ranger =======================
+scriptencoding utf-8
+
 if exists('g:ranger_choice_file')
   if empty(glob(g:ranger_choice_file))
     let s:choice_file_path = g:ranger_choice_file
   else
-    echom "Message from *Ranger.vim* :"
+    echom 'Message from *Ranger.vim* :'
     echom "You've set the g:ranger_choice_file variable."
-    echom "Please use the path for a file that does not already exist."
-    echom "Using /tmp/chosenfile for now..."
+    echom 'Please use the path for a file that does not already exist.'
+    echom 'Using /tmp/chosenfile for now...'
   endif
 endif
 
