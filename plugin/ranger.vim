@@ -43,7 +43,7 @@ else
 endif
 
 if !exists('s:choice_file_path')
-  let s:choice_file_path = '/tmp/chosenfile'
+  let s:choice_file_path = tempname()
 endif
 
 if has('nvim')
