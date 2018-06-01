@@ -97,11 +97,11 @@ if has('nvim')
           if self.previous_alternate > 0
             execute 'buffer ' . self.previous_alternate
           endif
-          " visit the previous buffer if it's not a directory or it's the only buffer
-          if !from_dir_buffer || bufnr('$') == 1
+          " visit the previous buffer if it's not a directory
+          if !from_dir_buffer
             execute 'buffer ' . self.previous_buffer
           else
-            " previous_buffer was a directory and should not be the only buffer
+            " previous_buffer was a directory
             execute 'bdelete! ' . self.previous_buffer
           endif
         endif
