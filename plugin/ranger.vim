@@ -71,7 +71,7 @@ if has('nvim')
           " we'll open the last file after visiting '% (before ranger)',
           " unless opening files in a new tab
           if len(files) > 1
-            " open all but files but the last, so we can set alternate before
+            " open all files but the last, so we can set alternate before
             " opening the last
             for f in files[0:-2]
               exec self.edit_cmd . f
