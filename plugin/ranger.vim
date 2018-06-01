@@ -52,54 +52,76 @@ let g:tabbed_ranger = get(g:, 'tabbed_ranger', 0)
 if has('nvim')
   function! OpenRangerIn(path, edit_cmd)
     let currentPath = expand(a:path)
-    let previous_buffer = expand('%')
     let rangerCallback = {
           \'name': 'ranger',
           \'edit_cmd': a:edit_cmd,
-          \'previous_alternate': expand('#'),
-          \'previous_buffer': previous_buffer
+          \'previous_alternate': bufnr('#'),
+          \'previous_buffer': bufnr('%')
           \}
     function! rangerCallback.on_exit(job_id, code, event)
+      let ranger_buf = bufnr('%')
+      let from_dir_buffer = isdirectory(fnamemodify(bufname(self.previous_buffer), ':p'))
+      " If ranger opened in a tab we can safely close the window
+      " We'll delete the buffer when the function ends
+      if exists('w:used_a_tab') | close! | endif
       try
-        " If ranger opened in a tab we can safely close the window
-        " We'll delete the buffer when the function ends
-        if exists('b:used_a_tab') | close! | endif
-        " remember the ranger buffer so we can delete it after it has left
-        " the window, this avoids 'bdelete' closing the window
-        let ranger_buf = expand('%')
         if filereadable(s:choice_file_path)
           let files = readfile(s:choice_file_path)
           " We'll open a file (or more), '% (before ranger)' should become '#',
           " we'll open the last file after visiting '% (before ranger)',
           " unless opening files in a new tab
-          for f in files[0:-2]
-            exec self.edit_cmd . f
-          endfor
-          if self.edit_cmd ==# 'edit '
-            execute 'buffer ' . self.previous_buffer
+          if len(files) > 1
+            " open all but files but the last, so we can set alternate before
+            " opening the last
+            for f in files[0:-2]
+              exec self.edit_cmd . f
+            endfor
           endif
-          execute self.edit_cmd . files[-1]
-          "clean up
+          if self.previous_alternate > 0
+            execute 'buffer ' . self.previous_alternate
+          endif
+
+          if !from_dir_buffer
+            execute 'buffer ' . self.previous_buffer
+            execute self.edit_cmd . files[-1]
+          else
+            " previous_buffer was a directory: don't make it the alternate
+            " but use previous_alternate ?????????????????????????????????
+            execute self.edit_cmd . files[-1]
+            execute 'bdelete! ' . self.previous_buffer
+          endif
           call delete(s:choice_file_path)
         else
           " Not opening any files, '% (before ranger)' & '# (before ranger)' should remain the same
-          execute 'buffer ' . self.previous_alternate
-          execute 'buffer ' . self.previous_buffer
+          " the old alternate may not exist e.g. only one buffer exists
+          if self.previous_alternate > 0
+            execute 'buffer ' . self.previous_alternate
+          endif
+          " visit the previous buffer if it's not a directory or it's the only buffer
+          if !from_dir_buffer || bufnr('$') == 1
+            execute 'buffer ' . self.previous_buffer
+          else
+            " previous_buffer was a directory and should not be the only buffer
+            execute 'bdelete! ' . self.previous_buffer
+          endif
         endif
-        execute 'bdelete! ' . bufnr(ranger_buf)
       endtry
+      execute 'bdelete! ' . ranger_buf
     endfunction
-    " if the user likes it, open a tab for ranger unless they 'edit' a directory
-    " for example when opening vim with directory arg (netrw replace)
-    " also only uses the tab feature when at least two buffers exist
-    if g:tabbed_ranger && !isdirectory(previous_buffer) && !len(tabpagebuflist()) < 2 | tabnew | else | enew | endif
-    " remove any previous directory buffer for fear of ending up in recursive
-    " automatic ranger opening nightmare
-    if isdirectory(previous_buffer) | execute 'bdelete! ' . bufnr(previous_buffer) | endif
+    " if the user likes it, open a tab, only when not 'editing' a buffer
+    if g:tabbed_ranger && !isdirectory(fnamemodify(bufname('%'), ':p'))
+      tabnew
+      let w:used_a_tab = 1
+    else
+      enew
+    endif
     if isdirectory(currentPath)
       call termopen(s:ranger_command . ' --choosefiles=' . s:choice_file_path . ' "' . currentPath . '"', rangerCallback)
+      " should disable 'OpenRangerOnVimLoadDir()' kicking in for this buffer
+      let b:ranger_buf = 1
     else
       call termopen(s:ranger_command . ' --choosefiles=' . s:choice_file_path . ' --selectfile="' . currentPath . '"', rangerCallback)
+      let b:ranger_buf = 1
     endif
     startinsert
   endfunction
@@ -150,8 +172,8 @@ endfunction
 " Open Ranger in the directory passed by argument
 function! OpenRangerOnVimLoadDir(argv_path)
   let path = expand(a:argv_path)
-  " Delete empty buffer created by vim
-  " after opening file so we can use 'bdelete'
+  " Delete empty buffer created by vim after opening file,
+  " in the callback, so we can use 'bdelete'
   call OpenRangerIn(path, 'edit ')
 endfunction
 
@@ -159,7 +181,7 @@ endfunction
 if exists('g:ranger_replace_netrw') && g:ranger_replace_netrw
   augroup ReplaceNetrwByRangerVim
     autocmd VimEnter * silent! autocmd! FileExplorer
-    autocmd BufEnter * if isdirectory(expand("%")) | call OpenRangerOnVimLoadDir("%") | endif
+    autocmd BufEnter * if !exists('b:ranger_buf') && isdirectory(expand("%")) | call OpenRangerOnVimLoadDir("%") | endif
   augroup END
 endif
 
