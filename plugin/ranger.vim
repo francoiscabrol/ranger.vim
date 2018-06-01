@@ -108,7 +108,7 @@ if has('nvim')
       endtry
       execute 'bdelete! ' . ranger_buf
     endfunction
-    " if the user likes it, open a tab, only when not 'editing' a buffer
+    " if the user likes it, open a tab, only when not 'editing' a directory
     if g:tabbed_ranger && !isdirectory(fnamemodify(bufname('%'), ':p'))
       tabnew
       let w:used_a_tab = 1
