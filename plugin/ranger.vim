@@ -67,46 +67,30 @@ if has('nvim')
       try
         if filereadable(s:choice_file_path)
           let files = readfile(s:choice_file_path)
-          " We'll open a file (or more), '% (before ranger)' should become '#',
-          " we'll open the last file after visiting '% (before ranger)',
-          " unless opening files in a new tab
-          if len(files) > 1
-            " open all files but the last, so we can set alternate before
-            " opening the last
-            for f in files[0:-2]
-              exec self.edit_cmd . f
-            endfor
-          endif
-          if self.previous_alternate > 0
-            execute 'buffer ' . self.previous_alternate
-          endif
-
-          if !from_dir_buffer
-            execute 'buffer ' . self.previous_buffer
-            execute self.edit_cmd . files[-1]
-          else
-            " previous_buffer was a directory: don't make it the alternate
-            " but use previous_alternate ?????????????????????????????????
-            execute self.edit_cmd . files[-1]
-            execute 'bdelete! ' . self.previous_buffer
-          endif
-          call delete(s:choice_file_path)
-        else
-          " Not opening any files, '% (before ranger)' & '# (before ranger)' should remain the same
-          " the old alternate may not exist e.g. only one buffer exists
-          if self.previous_alternate > 0
-            execute 'buffer ' . self.previous_alternate
-          endif
-          " visit the previous buffer if it's not a directory
-          if !from_dir_buffer
-            execute 'buffer ' . self.previous_buffer
-          else
-            " previous_buffer was a directory
-            execute 'bdelete! ' . self.previous_buffer
-          endif
         endif
       endtry
-      execute 'bdelete! ' . ranger_buf
+
+      if !from_dir_buffer
+        if !len(files) || self.edit_cmd ==# 'tabedit ' && !exists('w:used_a_tab')
+          exec 'buffer ' . self.previous_buffer
+          if self.previous_alternate > 0 | let @# = self.previous_alternate | endif
+        else
+          " We'll open a file (or more), '% (before ranger)' should become '#',
+          let @#= self.previous_buffer
+        endif
+      else
+        " previous_buffer was a directory
+        if self.previous_alternate > 0 | let @# = self.previous_alternate | endif
+        exec 'bdelete! ' . self.previous_buffer
+      endif
+
+      if len(files)
+        for f in files
+          exec self.edit_cmd . f
+        endfor
+        call delete(s:choice_file_path)
+      endif
+      exec 'bdelete! ' . ranger_buf
     endfunction
     " if the user likes it, open a tab, only when not 'editing' a directory
     if g:tabbed_ranger && !isdirectory(fnamemodify(bufname('%'), ':p'))
