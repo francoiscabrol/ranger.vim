@@ -43,7 +43,7 @@ else
 endif
 
 if !exists('s:choice_file_path')
-  let s:choice_file_path = tempname()
+  let s:choice_file_path = '/tmp/chosenfile'
 endif
 
 " Run Ranger in a new tab, only if set by user
@@ -101,9 +101,9 @@ if has('nvim')
 
       if self.edit_cmd ==# 'tabedit ' | call win_gotoid(current_window) | endif
 
-      if !from_dir_buffer | let @# = self.previous_buffer | endif
-      if from_dir_buffer | let @# = w:alternate_buffer  | endif
-      if exists('l:fallback') | let @# = self.previous_alternate | endif
+      if !from_dir_buffer | let @# = self.previous_buffer > 0 ? self.previous_buffer : @# | echomsg '!from_dir_buffer' | endif
+      if from_dir_buffer | let @# = w:alternate_buffer | echomsg 'from_dir_buffer' | endif
+      if exists('l:fallback') | let @# = self.previous_alternate | echomsg 'fallback'| endif
 
       echomsg 'alt: ' . @#
       if self.edit_cmd ==# 'tabedit ' | call win_gotoid(tab_window) | endif
