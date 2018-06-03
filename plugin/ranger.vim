@@ -59,6 +59,8 @@ if has('nvim')
           \'previous_buffer': bufnr('%')
           \}
     function! rangerCallback.on_exit(job_id, code, event)
+      echomsg 'alt before: ' . bufname(self.previous_alternate)
+      echomsg 'current before: ' . bufname(self.previous_buffer)
       let ranger_buf = bufnr('%')
       let from_dir_buffer = isdirectory(fnamemodify(bufname(self.previous_buffer), ':p'))
       " If ranger opened in a tab we can safely close the window
@@ -67,22 +69,25 @@ if has('nvim')
       try
         if filereadable(s:choice_file_path)
           let files = readfile(s:choice_file_path)
+        else
+          let files = []
         endif
       endtry
 
+      if !len(files) || self.edit_cmd ==# 'tabedit ' && !exists('w:used_a_tab')
+        let fallback = 1
+      endif
+
       if !from_dir_buffer
-        if !len(files) || self.edit_cmd ==# 'tabedit ' && !exists('w:used_a_tab')
+        if exists('l:fallback')
           exec 'buffer ' . self.previous_buffer
-          if self.previous_alternate > 0 | let @# = self.previous_alternate | endif
-        else
-          " We'll open a file (or more), '% (before ranger)' should become '#',
-          let @#= self.previous_buffer
         endif
       else
         " previous_buffer was a directory
-        if self.previous_alternate > 0 | let @# = self.previous_alternate | endif
         exec 'bdelete! ' . self.previous_buffer
       endif
+
+      if self.edit_cmd ==# 'tabedit ' | let current_window = win_getid() | endif
 
       if len(files)
         for f in files
@@ -90,7 +95,18 @@ if has('nvim')
         endfor
         call delete(s:choice_file_path)
       endif
+      if self.edit_cmd ==# 'tabedit ' | let tab_window = win_getid() | endif
+
       exec 'bdelete! ' . ranger_buf
+
+      if self.edit_cmd ==# 'tabedit ' | call win_gotoid(current_window) | endif
+
+      if !from_dir_buffer | let @# = self.previous_buffer | endif
+      if from_dir_buffer | let @# = w:alternate_buffer  | endif
+      if exists('l:fallback') | let @# = self.previous_alternate | endif
+
+      echomsg 'alt: ' . @#
+      if self.edit_cmd ==# 'tabedit ' | call win_gotoid(tab_window) | endif
     endfunction
     " if the user likes it, open a tab, only when not 'editing' a directory
     if g:tabbed_ranger && !isdirectory(fnamemodify(bufname('%'), ':p'))
@@ -158,6 +174,7 @@ function! OpenRangerOnVimLoadDir(argv_path)
   let path = expand(a:argv_path)
   " Delete empty buffer created by vim after opening file,
   " in the callback, so we can use 'bdelete'
+  let w:alternate_buffer = @#
   call OpenRangerIn(path, 'edit ')
 endfunction
 
