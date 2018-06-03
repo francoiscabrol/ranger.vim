@@ -80,10 +80,12 @@ if has('nvim')
 
       if !from_dir_buffer
         if exists('l:fallback')
+          echomsg 'visit buffer: ' . bufname(self.previous_buffer)
           exec 'buffer ' . self.previous_buffer
         endif
       else
         " previous_buffer was a directory
+          echomsg 'delete buffer: ' . bufname(self.previous_buffer)
         exec 'bdelete! ' . self.previous_buffer
       endif
 
@@ -95,17 +97,26 @@ if has('nvim')
         endfor
         call delete(s:choice_file_path)
       endif
-      if self.edit_cmd ==# 'tabedit ' | let tab_window = win_getid() | endif
 
+      echomsg 'ranger_buf: ' . ranger_buf
       exec 'bdelete! ' . ranger_buf
 
-      if self.edit_cmd ==# 'tabedit ' | call win_gotoid(current_window) | endif
-
-      if !from_dir_buffer | let @# = self.previous_buffer > 0 ? self.previous_buffer : @# | echomsg '!from_dir_buffer' | endif
-      if from_dir_buffer | let @# = w:alternate_buffer | echomsg 'from_dir_buffer' | endif
-      if exists('l:fallback') | let @# = self.previous_alternate | echomsg 'fallback'| endif
+      if self.edit_cmd ==# 'tabedit '
+        let tab_window = win_getid()
+        call win_gotoid(current_window)
+        echomsg 'from tabedit'
+        let @# = self.previous_alternate
+      elseif !from_dir_buffer && self.previous_buffer !=# ranger_buf
+        echomsg '!from_dir_buffer'
+        let @# = self.previous_buffer
+      elseif from_dir_buffer
+        echomsg 'from_dir_buffer'
+        echomsg 'nr ' . bufnr(w:alternate_buffer)
+        if len(w:alternate_buffer) | let @# = w:alternate_buffer | endif
+      endif
 
       echomsg 'alt: ' . @#
+      if !len(@#) | let @# = @% | echomsg 'set alt to current' | endif
       if self.edit_cmd ==# 'tabedit ' | call win_gotoid(tab_window) | endif
     endfunction
     " if the user likes it, open a tab, only when not 'editing' a directory
