@@ -49,6 +49,15 @@ endif
 " Run Ranger in a new tab, only if set by user
 let g:tabbed_ranger = get(g:, 'tabbed_ranger', 0)
 
+let g:debug_ranger = get(g:, 'debug_ranger', 0)
+function! s:debugmessage(mes)
+  if g:debug_ranger
+    redraw | echohl Keyword | echomsg a:mes | echohl None
+  else
+    return
+  endif
+endfunction
+
 if has('nvim')
   function! OpenRangerIn(path, edit_cmd)
     let currentPath = expand(a:path)
@@ -59,65 +68,96 @@ if has('nvim')
           \'previous_buffer': bufnr('%')
           \}
     function! rangerCallback.on_exit(job_id, code, event)
-      echomsg 'alt before: ' . bufname(self.previous_alternate)
-      echomsg 'current before: ' . bufname(self.previous_buffer)
+      call <SID>debugmessage('alt before: ' . bufname(self.previous_alternate))
+      call <SID>debugmessage('current before: ' . bufname(self.previous_buffer))
       let ranger_buf = bufnr('%')
-      let from_dir_buffer = isdirectory(fnamemodify(bufname(self.previous_buffer), ':p'))
+      if ranger_buf == self.previous_buffer
+        let self.previous_buffer = -1
+        let ranger_ate_buffer = 1
+        call <SID>debugmessage('ranger ate buffer')
+      endif
+      let from_dir_buffer = exists('w:alternate_buffer')
       " If ranger opened in a tab we can safely close the window
       " We'll delete the buffer when the function ends
       if exists('w:used_a_tab') | close! | endif
       try
         if filereadable(s:choice_file_path)
           let files = readfile(s:choice_file_path)
-        else
-          let files = []
         endif
       endtry
 
-      if !len(files) || self.edit_cmd ==# 'tabedit ' && !exists('w:used_a_tab')
-        let fallback = 1
+      if !exists('l:files') || self.edit_cmd ==# 'tabedit ' && !exists('w:used_a_tab')
+        let should_visit_previous = 1
       endif
 
-      if !from_dir_buffer
-        if exists('l:fallback')
-          echomsg 'visit buffer: ' . bufname(self.previous_buffer)
+      if exists('l:should_visit_previous') && !exists('l:ranger_ate_buffer')
+        if from_dir_buffer
+          call <SID>debugmessage('visit buffer: ' . bufname(self.previous_alternate))
+          exec 'buffer ' . self.previous_alternate
+        else
+          call <SID>debugmessage('visit buffer: ' . bufname(self.previous_buffer))
           exec 'buffer ' . self.previous_buffer
         endif
-      else
-        " previous_buffer was a directory
-          echomsg 'delete buffer: ' . bufname(self.previous_buffer)
+      endif
+
+      if from_dir_buffer
+        call <SID>debugmessage('delete buffer: ' . bufname(self.previous_buffer))
         exec 'bdelete! ' . self.previous_buffer
       endif
 
-      if self.edit_cmd ==# 'tabedit ' | let current_window = win_getid() | endif
-
-      if len(files)
+      if self.edit_cmd ==# 'edit ' && exists('l:files')
         for f in files
           exec self.edit_cmd . f
         endfor
-        call delete(s:choice_file_path)
       endif
 
-      echomsg 'ranger_buf: ' . ranger_buf
+      call <SID>debugmessage('ranger_buf: ' . ranger_buf)
+      let ranger_buf_name = bufname(ranger_buf)
       exec 'bdelete! ' . ranger_buf
 
-      if self.edit_cmd ==# 'tabedit '
-        let tab_window = win_getid()
-        call win_gotoid(current_window)
-        echomsg 'from tabedit'
-        let @# = self.previous_alternate
-      elseif !from_dir_buffer && self.previous_buffer !=# ranger_buf
-        echomsg '!from_dir_buffer'
-        let @# = self.previous_buffer
-      elseif from_dir_buffer
-        echomsg 'from_dir_buffer'
-        echomsg 'nr ' . bufnr(w:alternate_buffer)
-        if len(w:alternate_buffer) | let @# = w:alternate_buffer | endif
+      if !exists('w:used_a_tab')
+
+        if self.edit_cmd ==# 'tabedit '
+          let @# = self.previous_alternate
+          call <SID>debugmessage('alt: tabedit')
+
+        elseif from_dir_buffer
+          let @# = w:alternate_buffer
+          unlet w:alternate_buffer
+          call <SID>debugmessage('alt: from_dir_buffer')
+
+        elseif !exists('l:files')
+          if exists('l:ranger_ate_buffer')
+            let @# = ranger_buf + 1
+            call <SID>debugmessage('alt: ranger_buf + 1')
+          else
+            let @# = self.previous_alternate
+            call <SID>debugmessage('alt: no files')
+          endif
+
+        elseif exists('l:files')
+          if exists('l:ranger_ate_buffer')
+            let @# = @%
+            call <SID>debugmessage('alt: current')
+          else
+            let @# = self.previous_buffer
+            call <SID>debugmessage('alt: files')
+          endif
+
+        else
+          call <SID>debugmessage("don't know what to do")
+        endif
       endif
 
-      echomsg 'alt: ' . @#
-      if !len(@#) | let @# = @% | echomsg 'set alt to current' | endif
-      if self.edit_cmd ==# 'tabedit ' | call win_gotoid(tab_window) | endif
+      call <SID>debugmessage('set alt from logic: ' . @#)
+
+      if self.edit_cmd ==# 'tabedit ' && exists('l:files')
+        for f in files
+          exec self.edit_cmd . f
+        endfor
+      endif
+
+      call delete(s:choice_file_path)
     endfunction
     " if the user likes it, open a tab, only when not 'editing' a directory
     if g:tabbed_ranger && !isdirectory(fnamemodify(bufname('%'), ':p'))
@@ -185,7 +225,8 @@ function! OpenRangerOnVimLoadDir(argv_path)
   let path = expand(a:argv_path)
   " Delete empty buffer created by vim after opening file,
   " in the callback, so we can use 'bdelete'
-  let w:alternate_buffer = @#
+  " Set alternate to the directory buffer
+  let w:alternate_buffer = bufnr('%')
   call OpenRangerIn(path, 'edit ')
 endfunction
 
