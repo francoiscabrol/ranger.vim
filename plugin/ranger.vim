@@ -49,15 +49,6 @@ endif
 " Run Ranger in a new tab, only if set by user
 let g:tabbed_ranger = get(g:, 'tabbed_ranger', 0)
 
-let g:debug_ranger = get(g:, 'debug_ranger', 0)
-function! s:debugmessage(mes)
-  if g:debug_ranger
-    redraw | echohl Keyword | echomsg a:mes | echohl None
-  else
-    return
-  endif
-endfunction
-
 if has('nvim')
   function! OpenRangerIn(path, edit_cmd)
     let currentPath = expand(a:path)
@@ -68,13 +59,12 @@ if has('nvim')
           \'previous_buffer': bufnr('%')
           \}
     function! rangerCallback.on_exit(job_id, code, event)
-      call <SID>debugmessage('alt before: ' . bufname(self.previous_alternate))
-      call <SID>debugmessage('current before: ' . bufname(self.previous_buffer))
       let ranger_buf = bufnr('%')
       if ranger_buf == self.previous_buffer
+        " this line kept for now to get an error if the logic fails to avoid
+        " using the ranger buffer for the alternate file or tries to visit it.
         let self.previous_buffer = -1
         let ranger_ate_buffer = 1
-        call <SID>debugmessage('ranger ate buffer')
       endif
       let from_dir_buffer = exists('w:alternate_buffer')
       " If ranger opened in a tab we can safely close the window
@@ -83,6 +73,7 @@ if has('nvim')
       try
         if filereadable(s:choice_file_path)
           let files = readfile(s:choice_file_path)
+          call delete(s:choice_file_path)
         endif
       endtry
 
@@ -92,16 +83,13 @@ if has('nvim')
 
       if exists('l:should_visit_previous') && !exists('l:ranger_ate_buffer')
         if from_dir_buffer
-          call <SID>debugmessage('visit buffer: ' . bufname(self.previous_alternate))
           exec 'buffer ' . self.previous_alternate
         else
-          call <SID>debugmessage('visit buffer: ' . bufname(self.previous_buffer))
           exec 'buffer ' . self.previous_buffer
         endif
       endif
 
       if from_dir_buffer
-        call <SID>debugmessage('delete buffer: ' . bufname(self.previous_buffer))
         exec 'bdelete! ' . self.previous_buffer
       endif
 
@@ -111,55 +99,57 @@ if has('nvim')
         endfor
       endif
 
-      call <SID>debugmessage('ranger_buf: ' . ranger_buf)
-      let ranger_buf_name = bufname(ranger_buf)
+      " deleting ranger buffer now, if the alternate file logic tries to use
+      " it we will get an error, so we learn were improvements are needed
       exec 'bdelete! ' . ranger_buf
 
       if !exists('w:used_a_tab')
-
         if self.edit_cmd ==# 'tabedit '
           let @# = self.previous_alternate
-          call <SID>debugmessage('alt: tabedit')
 
         elseif from_dir_buffer
           let @# = w:alternate_buffer
           unlet w:alternate_buffer
-          call <SID>debugmessage('alt: from_dir_buffer')
 
         elseif !exists('l:files')
           if exists('l:ranger_ate_buffer')
+            " this is a weird one, the result of using ranger when vim's buffer
+            " list is 'empty', vim always has at least the [No Name] buffer,
+            " when the user subsequently opens an actual buffer this old
+            " [No Name] buffer gets 'eaten'. If ranger replaces that
+            " buffer and the user does not choose a file, vim will end up in a
+            " state where once again there is only the [No Name] buffer,
+            " except it will have a 'bufnr' 1 higher than the one before
+            " using ranger did.
             let @# = ranger_buf + 1
-            call <SID>debugmessage('alt: ranger_buf + 1')
           else
             let @# = self.previous_alternate
-            call <SID>debugmessage('alt: no files')
           endif
 
         elseif exists('l:files')
           if exists('l:ranger_ate_buffer')
+            " A last resort, we can't set a sensible alternate, to not get an
+            " error, we use the buffer we end up in as with 'the weird one'
             let @# = @%
-            call <SID>debugmessage('alt: current')
           else
             let @# = self.previous_buffer
-            call <SID>debugmessage('alt: files')
           endif
-
-        else
-          call <SID>debugmessage("don't know what to do")
         endif
       endif
 
-      call <SID>debugmessage('set alt from logic: ' . @#)
-
+      " when opening files in a new tab, we do this only now, after setting
+      " the alternate file to avoid jumping windows for setting that alternate
+      " in the previous window. Perhaps there is a way to open the files
+      " earlier and while being in the new tab set the alternate for that old
+      " window but I haven't yet found a way to do that.
       if self.edit_cmd ==# 'tabedit ' && exists('l:files')
         for f in files
           exec self.edit_cmd . f
         endfor
       endif
-
-      call delete(s:choice_file_path)
     endfunction
     " if the user likes it, open a tab, only when not 'editing' a directory
+    " (netrw replacement)
     if g:tabbed_ranger && !isdirectory(fnamemodify(bufname('%'), ':p'))
       tabnew
       let w:used_a_tab = 1
@@ -223,9 +213,6 @@ endfunction
 " Open Ranger in the directory passed by argument
 function! OpenRangerOnVimLoadDir(argv_path)
   let path = expand(a:argv_path)
-  " Delete empty buffer created by vim after opening file,
-  " in the callback, so we can use 'bdelete'
-  " Set alternate to the directory buffer
   let w:alternate_buffer = bufnr('#')
   call OpenRangerIn(path, 'edit ')
 endfunction
