@@ -226,7 +226,7 @@ function! OpenRangerOnVimLoadDir(argv_path)
   " Delete empty buffer created by vim after opening file,
   " in the callback, so we can use 'bdelete'
   " Set alternate to the directory buffer
-  let w:alternate_buffer = bufnr('%')
+  let w:alternate_buffer = bufnr('#')
   call OpenRangerIn(path, 'edit ')
 endfunction
 
