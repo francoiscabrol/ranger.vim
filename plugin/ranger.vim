@@ -83,7 +83,7 @@ if has('nvim')
 
       if exists('l:should_visit_previous') && !exists('l:ranger_ate_buffer')
         if from_dir_buffer
-          exec 'buffer ' . self.previous_alternate
+          exec 'buffer ' . w:alternate_buffer
         else
           exec 'buffer ' . self.previous_buffer
         endif
