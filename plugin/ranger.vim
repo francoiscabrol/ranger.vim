@@ -49,7 +49,7 @@ function! s:EditFiles(cmd)
     if filereadable(s:choice_file_path)
       let cwd = getcwd()
       for f in readfile(s:choice_file_path)
-        exec a:cmd . (f[0:len(cwd)-1] ==# cwd ? f[len(cwd)+1:-1] : f)
+        exec a:cmd . ' ' . (f[0:len(cwd)-1] ==# cwd ? f[len(cwd)+1:-1] : f)
       endfor
       call delete(s:choice_file_path)
     endif
@@ -87,20 +87,20 @@ endif
 
 " For backwards-compatibility (deprecated)
 if exists('g:ranger_open_new_tab') && g:ranger_open_new_tab
-  let s:default_edit_cmd='tabedit '
+  let s:default_edit_cmd='tabedit'
 else
-  let s:default_edit_cmd='edit '
+  let s:default_edit_cmd='edit'
 endif
 
-command! RangerCurrentFile call OpenRangerIn("%", s:default_edit_cmd)
+command! RangerCurrentFile      call OpenRangerIn("%",     s:default_edit_cmd)
 command! RangerCurrentDirectory call OpenRangerIn("%:p:h", s:default_edit_cmd)
-command! RangerWorkingDirectory call OpenRangerIn(".", s:default_edit_cmd)
+command! RangerWorkingDirectory call OpenRangerIn(".",     s:default_edit_cmd)
 command! Ranger RangerCurrentFile
 
 " To open the selected file in a new tab
-command! RangerCurrentFileNewTab call OpenRangerIn("%", 'tabedit ')
-command! RangerCurrentDirectoryNewTab call OpenRangerIn("%:p:h", 'tabedit ')
-command! RangerWorkingDirectoryNewTab call OpenRangerIn(".", 'tabedit ')
+command! RangerCurrentFileNewTab      call OpenRangerIn("%",     'tabedit')
+command! RangerCurrentDirectoryNewTab call OpenRangerIn("%:p:h", 'tabedit')
+command! RangerWorkingDirectoryNewTab call OpenRangerIn(".",     'tabedit')
 command! RangerNewTab RangerCurrentDirectoryNewTab
 
 " For retro-compatibility
@@ -116,7 +116,7 @@ function! OpenRangerOnVimLoadDir(argv_path)
   Bclose!
 
   " Open Ranger
-  call OpenRangerIn(path, 'edit ')
+  call OpenRangerIn(path, 'edit')
 endfunction
 
 " To open ranger when vim load a directory
