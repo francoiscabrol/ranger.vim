@@ -1,7 +1,7 @@
 Ranger.vim
 ==========
 
-[Ranger](http://ranger.nongnu.org/) integration in vim and neovim
+[Ranger](https://ranger.github.io/) integration in vim and neovim
 
 ![Demo](./ranger.gif)
 
