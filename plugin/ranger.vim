@@ -44,45 +44,40 @@ if !exists('s:choice_file_path')
   let s:choice_file_path = '/tmp/chosenfile'
 endif
 
+function! s:EditFiles(cmd)
+  try
+    if filereadable(s:choice_file_path)
+      let cwd = getcwd()
+      for f in readfile(s:choice_file_path)
+        exec a:cmd . ' ' . (f[0:len(cwd)-1] ==# cwd ? f[len(cwd)+1:-1] : f)
+      endfor
+      call delete(s:choice_file_path)
+    endif
+  endtry
+endfunction
+
+function! s:GetRangerCmd(path)
+  return s:ranger_command . ' --choosefiles=' . s:choice_file_path .
+      \ (isdirectory(a:path) ? ' "' : ' --selectfile="') . expand(a:path) . '"'
+endfunction
+
 if has('nvim')
   function! OpenRangerIn(path, edit_cmd)
-    let currentPath = expand(a:path)
     let rangerCallback = { 'name': 'ranger', 'edit_cmd': a:edit_cmd }
     function! rangerCallback.on_exit(job_id, code, event)
       if a:code == 0
         silent! Bclose!
       endif
-      try
-        if filereadable(s:choice_file_path)
-          for f in readfile(s:choice_file_path)
-            exec self.edit_cmd . f
-          endfor
-          call delete(s:choice_file_path)
-        endif
-      endtry
+      call s:EditFiles(self.edit_cmd)
     endfunction
     enew
-    if isdirectory(currentPath)
-      call termopen(s:ranger_command . ' --choosefiles=' . s:choice_file_path . ' "' . currentPath . '"', rangerCallback)
-    else
-      call termopen(s:ranger_command . ' --choosefiles=' . s:choice_file_path . ' --selectfile="' . currentPath . '"', rangerCallback)
-    endif
+    call termopen(s:GetRangerCmd(a:path), rangerCallback)
     startinsert
   endfunction
 else
   function! OpenRangerIn(path, edit_cmd)
-    let currentPath = expand(a:path)
-    if isdirectory(currentPath)
-      silent exec '!' . s:ranger_command . ' --choosefiles=' . s:choice_file_path . ' "' . currentPath . '"'
-    else
-      silent exec '!' . s:ranger_command . ' --choosefiles=' . s:choice_file_path . ' --selectfile="' . currentPath . '"'
-    endif
-    if filereadable(s:choice_file_path)
-      for f in readfile(s:choice_file_path)
-        exec a:edit_cmd . f
-      endfor
-      call delete(s:choice_file_path)
-    endif
+    silent exec '!' . s:GetRangerCmd(a:path)
+    call s:EditFiles(a:edit_cmd)
     redraw!
     " reset the filetype to fix the issue that happens
     " when opening ranger on VimEnter (with `vim .`)
@@ -92,20 +87,20 @@ endif
 
 " For backwards-compatibility (deprecated)
 if exists('g:ranger_open_new_tab') && g:ranger_open_new_tab
-  let s:default_edit_cmd='tabedit '
+  let s:default_edit_cmd='tabedit'
 else
-  let s:default_edit_cmd='edit '
+  let s:default_edit_cmd='edit'
 endif
 
-command! RangerCurrentFile call OpenRangerIn("%", s:default_edit_cmd)
+command! RangerCurrentFile      call OpenRangerIn("%",     s:default_edit_cmd)
 command! RangerCurrentDirectory call OpenRangerIn("%:p:h", s:default_edit_cmd)
-command! RangerWorkingDirectory call OpenRangerIn(".", s:default_edit_cmd)
+command! RangerWorkingDirectory call OpenRangerIn(".",     s:default_edit_cmd)
 command! Ranger RangerCurrentFile
 
 " To open the selected file in a new tab
-command! RangerCurrentFileNewTab call OpenRangerIn("%", 'tabedit ')
-command! RangerCurrentDirectoryNewTab call OpenRangerIn("%:p:h", 'tabedit ')
-command! RangerWorkingDirectoryNewTab call OpenRangerIn(".", 'tabedit ')
+command! RangerCurrentFileNewTab      call OpenRangerIn("%",     'tabedit')
+command! RangerCurrentDirectoryNewTab call OpenRangerIn("%:p:h", 'tabedit')
+command! RangerWorkingDirectoryNewTab call OpenRangerIn(".",     'tabedit')
 command! RangerNewTab RangerCurrentDirectoryNewTab
 
 " For retro-compatibility
