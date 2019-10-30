@@ -39,10 +39,16 @@ RangerCurrentFile // Default Ranger behaviour
 RangerCurrentDirectory
 RangerWorkingDirectory
 
+// open always in new tabs
 RangerNewTab
 RangerCurrentFileNewTab
 RangerCurrentDirectoryNewTab
 RangerWorkingDirectoryNewTab
+
+// open tab, when existant or in new tab when not existant
+RangerCurrentFileExistingOrNewTab
+RangerCurrentDirectoryExistingOrNewTab
+RangerWorkingDirectoryExistingOrNewTab
 ```
 
 The old way to make vim open the selected file in a new tab was to add
