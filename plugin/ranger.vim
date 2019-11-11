@@ -47,19 +47,69 @@ endif
 if has('nvim')
   function! OpenRangerIn(path, edit_cmd)
     let currentPath = expand(a:path)
-    let rangerCallback = { 'name': 'ranger', 'edit_cmd': a:edit_cmd }
+    let rangerCallback = {
+          \'name': 'ranger',
+          \'edit_cmd': a:edit_cmd,
+          \'oldAltBuffer': bufnr('#'),
+          \'oldBuffer': bufnr('%'),
+          \'oldPath': expand('%')
+          \}
     function! rangerCallback.on_exit(job_id, code, event)
+      " Store the ranger buffer number for later
+      let rangerBuff = bufnr('%')
+      "if ranger was closed regularly by selecting a file or quitting
       if a:code == 0
-        silent! Bclose!
+        try
+          "try to read the file containing the chosen files list
+          if filereadable(s:choice_file_path)
+            "Open all the selected files
+            for f in readfile(s:choice_file_path)
+              exec self.edit_cmd . f
+            endfor
+            "delete the temporary file
+            call delete(s:choice_file_path)
+            "store the last opened buffer number for later
+            let a:newFileBuff = bufnr('%')
+            "if the old buffer was a directory
+            if isdirectory(self.oldPath)
+              "Then it should remove this buffer
+              silent! execute 'bdelete! '. self.oldBuffer
+            else
+              "but else it should select the old and then the last buffer to
+              "set correctly the alternate buffer
+              silent! execute 'buffer '. self.oldBuffer
+              silent! execute 'buffer '.a:newFileBuff
+            endif
+          else
+            "Then check if the previous buffer is a directory
+            "it means that ranger ran while opening vim
+            if isdirectory(self.oldPath)
+              "Then it should remove this previous buffer
+              silent! execute 'bdelete! '. self.oldBuffer
+              if self.oldAltBuffer
+                "select the old alternate buffer (before opening ranger)
+                silent! execute 'buffer '. self.oldAltBuffer
+              else
+                "or open a new empty one
+                enew
+              endif
+            "but in any other case
+            else
+              "Select the old alternate buffer (before opening ranger)
+              silent! execute 'buffer '. self.oldAltBuffer
+              "Then move back to the previous buffer
+              silent! execute 'buffer '. self.oldBuffer
+            endif
+          endif
+        endtry
+        "finally it remove the ranger's buffer
+        execute 'bdelete! '.rangerBuff
+      "if ranger was close by 'bd'
+      else
+        silent! execute 'bdelete! '. self.oldBuffer
+        enew
+        execute 'bdelete! '.rangerBuff
       endif
-      try
-        if filereadable(s:choice_file_path)
-          for f in readfile(s:choice_file_path)
-            exec self.edit_cmd . f
-          endfor
-          call delete(s:choice_file_path)
-        endif
-      endtry
     endfunction
     enew
     if isdirectory(currentPath)
@@ -120,8 +170,6 @@ endfunction
 function! OpenRangerOnVimLoadDir(argv_path)
   let path = expand(a:argv_path)
 
-  " Delete empty buffer created by vim
-  Bclose!
 
   " Open Ranger
   call OpenRangerIn(path, 'edit')
@@ -138,4 +186,3 @@ endif
 if !exists('g:ranger_map_keys') || g:ranger_map_keys
   map <leader>f :Ranger<CR>
 endif
-
