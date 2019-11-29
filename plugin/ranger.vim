@@ -57,6 +57,8 @@ if has('nvim')
           for f in readfile(s:choice_file_path)
             exec self.edit_cmd . f
           endfor
+          let currentWorkingDirectory = getcwd()
+          :execute "lcd " . currentWorkingDirectory
           call delete(s:choice_file_path)
         endif
       endtry
