@@ -57,9 +57,9 @@ if has('nvim')
           for f in readfile(s:choice_file_path)
             let relpath = system('realpath --relative-to=. ' . f)
             if strlen(relpath) < strlen(f)
-              exec a:edit_cmd . relpath
+              exec self.edit_cmd . relpath
             else
-              exec a:edit_cmd . f
+              exec self.edit_cmd . f
             endif
           endfor
           call delete(s:choice_file_path)
