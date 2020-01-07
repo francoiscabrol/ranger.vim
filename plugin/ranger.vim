@@ -55,7 +55,16 @@ if has('nvim')
       try
         if filereadable(s:choice_file_path)
           for f in readfile(s:choice_file_path)
-            exec self.edit_cmd . f
+            if executable('realpath')
+              let relpath = system('realpath --relative-to=. ' . f)
+              if strlen(relpath) < strlen(f)
+                exec self.edit_cmd . relpath
+              else
+                exec self.edit_cmd . f
+              endif
+            else
+              exec self.edit_cmd . f
+            endif
           endfor
           call delete(s:choice_file_path)
         endif
@@ -79,7 +88,16 @@ else
     endif
     if filereadable(s:choice_file_path)
       for f in readfile(s:choice_file_path)
-        exec a:edit_cmd . f
+            if executable('realpath')
+              let relpath = system('realpath --relative-to=. ' . f)
+              if strlen(relpath) < strlen(f)
+                exec a:edit_cmd . relpath
+              else
+                exec a:edit_cmd . f
+              endif
+            else
+              exec a:edit_cmd . f
+            endif
       endfor
       call delete(s:choice_file_path)
     endif
