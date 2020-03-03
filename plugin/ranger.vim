@@ -86,7 +86,7 @@ else
     redraw!
     " reset the filetype to fix the issue that happens
     " when opening ranger on VimEnter (with `vim .`)
-    filetype detect
+    "filetype detect
   endfun
 endif
 
