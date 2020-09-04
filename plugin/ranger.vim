@@ -44,9 +44,18 @@ if !exists('s:choice_file_path')
   let s:choice_file_path = '/tmp/chosenfile'
 endif
 
+function! s:parse_path(path)
+  let parsed = expand(a:path)
+  " suda compatibility
+  if exists('g:suda#prefix')
+    let parsed = substitute(parsed, g:suda#prefix, '', '')
+  endif
+  return parsed
+endfunction
+
 if has('nvim')
   function! OpenRangerIn(path, edit_cmd)
-    let currentPath = expand(a:path)
+    let currentPath = s:parse_path(a:path)
     let rangerCallback = { 'name': 'ranger', 'edit_cmd': a:edit_cmd }
     function! rangerCallback.on_exit(job_id, code, event)
       if a:code == 0
@@ -71,7 +80,7 @@ if has('nvim')
   endfunction
 else
   function! OpenRangerIn(path, edit_cmd)
-    let currentPath = expand(a:path)
+    let currentPath = s:parse_path(a:path)
     if isdirectory(currentPath)
       silent exec '!' . s:ranger_command . ' --choosefiles=' . s:choice_file_path . ' "' . currentPath . '"'
     else
