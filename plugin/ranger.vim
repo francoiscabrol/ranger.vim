@@ -45,42 +45,54 @@ if !exists('s:choice_file_path')
 endif
 
 if has('nvim')
-  function! OpenRangerIn(path, edit_cmd)
+  function! OpenRangerIn(path, mode, edit_cmd)
     let currentPath = expand(a:path)
-    let rangerCallback = { 'name': 'ranger', 'edit_cmd': a:edit_cmd }
+    let rangerCallback = { 'name': 'ranger', 'mode': a:mode, 'edit_cmd': a:edit_cmd }
     function! rangerCallback.on_exit(job_id, code, event)
       if a:code == 0
         silent! Bclose!
       endif
       try
         if filereadable(s:choice_file_path)
-          for f in readfile(s:choice_file_path)
-            exec self.edit_cmd . f
-          endfor
+          if self.mode == "choosefiles"
+            for f in readfile(s:choice_file_path)
+              exec self.edit_cmd . f
+            endfor
+          elseif self.mode == "choosedir"
+            for dir in readfile(s:choice_file_path, 1)
+              exec self.edit_cmd . dir
+            endfor
+          end
           call delete(s:choice_file_path)
         endif
       endtry
     endfunction
     enew
     if isdirectory(currentPath)
-      call termopen(s:ranger_command . ' --choosefiles=' . s:choice_file_path . ' "' . currentPath . '"', rangerCallback)
+      call termopen(s:ranger_command . ' --' . a:mode . '=' . s:choice_file_path . ' "' . currentPath . '"', rangerCallback)
     else
-      call termopen(s:ranger_command . ' --choosefiles=' . s:choice_file_path . ' --selectfile="' . currentPath . '"', rangerCallback)
+      call termopen(s:ranger_command . ' --' . a:mode . '=' . s:choice_file_path . ' --selectfile="' . currentPath . '"', rangerCallback)
     endif
     startinsert
   endfunction
 else
-  function! OpenRangerIn(path, edit_cmd)
+  function! OpenRangerIn(path, mode, edit_cmd)
     let currentPath = expand(a:path)
     if isdirectory(currentPath)
-      silent exec '!' . s:ranger_command . ' --choosefiles=' . s:choice_file_path . ' "' . currentPath . '"'
+      silent exec '!' . s:ranger_command . ' --' . a:mode . '=' . s:choice_file_path . ' "' . currentPath . '"'
     else
-      silent exec '!' . s:ranger_command . ' --choosefiles=' . s:choice_file_path . ' --selectfile="' . currentPath . '"'
+      silent exec '!' . s:ranger_command . ' --' . a:mode . '=' . s:choice_file_path . ' --selectfile="' . currentPath . '"'
     endif
     if filereadable(s:choice_file_path)
-      for f in readfile(s:choice_file_path)
-        exec a:edit_cmd . f
-      endfor
+      if a:mode == "choosefiles"
+        for f in readfile(s:choice_file_path)
+          exec a:edit_cmd . f
+        endfor
+      elseif a:mode == "choosedir"
+        for dir in readfile(s:choice_file_path, 1)
+          exec a:edit_cmd . dir
+        endfor
+      end
       call delete(s:choice_file_path)
     endif
     redraw!
@@ -97,18 +109,19 @@ else
   let s:default_edit_cmd='edit '
 endif
 
-command! RangerCurrentFile call OpenRangerIn("%", s:default_edit_cmd)
-command! RangerCurrentDirectory call OpenRangerIn("%:p:h", s:default_edit_cmd)
-command! RangerWorkingDirectory call OpenRangerIn(".", s:default_edit_cmd)
+command! RangerCD call OpenRangerIn("%", 'choosedir', "cd ")
+command! RangerCurrentFile call OpenRangerIn("%", 'choosefiles', s:default_edit_cmd)
+command! RangerCurrentDirectory call OpenRangerIn("%:p:h", 'choosefiles', s:default_edit_cmd)
+command! RangerWorkingDirectory call OpenRangerIn(".", 'choosefiles', s:default_edit_cmd)
 command! Ranger RangerCurrentFile
 
 " To open the selected file in a new tab
-command! RangerCurrentFileNewTab call OpenRangerIn("%", 'tabedit ')
-command! RangerCurrentFileExistingOrNewTab call OpenRangerIn("%", 'tab drop ')
-command! RangerCurrentDirectoryNewTab call OpenRangerIn("%:p:h", 'tabedit ')
-command! RangerCurrentDirectoryExistingOrNewTab call OpenRangerIn("%:p:h", 'tab drop ')
-command! RangerWorkingDirectoryNewTab call OpenRangerIn(".", 'tabedit ')
-command! RangerWorkingDirectoryExistingOrNewTab call OpenRangerIn(".", 'tab drop ')
+command! RangerCurrentFileNewTab call OpenRangerIn("%", 'choosefiles', 'tabedit ')
+command! RangerCurrentFileExistingOrNewTab call OpenRangerIn("%", 'choosefiles', 'tab drop ')
+command! RangerCurrentDirectoryNewTab call OpenRangerIn("%:p:h", 'choosefiles',  'tabedit ')
+command! RangerCurrentDirectoryExistingOrNewTab call OpenRangerIn("%:p:h", 'choosefiles', 'tab drop ')
+command! RangerWorkingDirectoryNewTab call OpenRangerIn(".", 'choosefiles', 'tabedit ')
+command! RangerWorkingDirectoryExistingOrNewTab call OpenRangerIn(".", 'choosefiles', 'tab drop ')
 command! RangerNewTab RangerCurrentDirectoryNewTab
 
 " For retro-compatibility
@@ -124,7 +137,7 @@ function! OpenRangerOnVimLoadDir(argv_path)
   Bclose!
 
   " Open Ranger
-  call OpenRangerIn(path, 'edit')
+  call OpenRangerIn(path, 'choosefiles', 'edit')
 endfunction
 
 " To open ranger when vim load a directory
