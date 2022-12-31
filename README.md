@@ -34,18 +34,18 @@ Vim will open the selected file in the current window.
 
 List of commands:
 ```
-Ranger // open current file by default
-RangerCurrentFile // Default Ranger behaviour
+Ranger " open current file by default
+RangerCurrentFile " Default Ranger behaviour
 RangerCurrentDirectory
 RangerWorkingDirectory
 
-// open always in new tabs
+" open always in new tabs
 RangerNewTab
 RangerCurrentFileNewTab
 RangerCurrentDirectoryNewTab
 RangerWorkingDirectoryNewTab
 
-// open tab, when existant or in new tab when not existant
+" open tab, when existant or in new tab when not existant
 RangerCurrentFileExistingOrNewTab
 RangerCurrentDirectoryExistingOrNewTab
 RangerWorkingDirectoryExistingOrNewTab
@@ -58,8 +58,8 @@ supported but deprecated.
 ### Opening ranger instead of netrw when you open a directory
 If you want to see vim opening ranger when you open a directory (ex: nvim ./dir or :edit ./dir), please add this in your .(n)vimrc.
 ```
-let g:NERDTreeHijackNetrw = 0 // add this line if you use NERDTree
-let g:ranger_replace_netrw = 1 // open ranger when vim open a directory
+let g:NERDTreeHijackNetrw = 0 " add this line if you use NERDTree
+let g:ranger_replace_netrw = 1 " open ranger when vim open a directory
 ```
 
 In order for this to work you need to install the bclose.vim plugin (see above).
