@@ -8,13 +8,26 @@ Ranger.vim
 Installation
 ------------
 
-Install it with your favorite plugin manager. Example with vim-plug:
+Install it with your favorite plugin manager. Example with [vim-plug](https://github.com/junegunn/vim-plug):
 
-        Plug 'francoiscabrol/ranger.vim'
+```viml
+Plug 'francoiscabrol/ranger.vim'
+```
 
 If you use neovim, you have to add the dependency to the plugin bclose.vim:
 
-        Plug 'rbgrouleff/bclose.vim'
+```viml
+Plug 'rbgrouleff/bclose.vim'
+```
+        
+Or if you prefer with [packer.nvim](https://github.com/wbthomason/packer.nvim):
+
+```lua
+use {
+    'francoiscabrol/ranger.vim',
+    requires = { 'rbgrouleff/bclose.vim' }
+}
+```
 
 How to use it
 -------------
