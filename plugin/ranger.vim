@@ -167,5 +167,5 @@ function s:set_mouse_with_rnvimr() abort
 endfunction
 
 augroup RnvimrMouse
-    autocmd FileType rnvimr call <SID>set_mouse_with_rnvimr()
+    autocmd FileType rangervim call <SID>set_mouse_with_rnvimr()
 augroup END
