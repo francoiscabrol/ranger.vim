@@ -166,6 +166,8 @@ function s:set_mouse_with_rnvimr() abort
     endif
 endfunction
 
-augroup RnvimrMouse
-    autocmd FileType rangervim call <SID>set_mouse_with_rnvimr()
-augroup END
+if has('nvim')
+  augroup RnvimrMouse
+      autocmd FileType rangervim call <SID>set_mouse_with_rnvimr()
+  augroup END
+endif
