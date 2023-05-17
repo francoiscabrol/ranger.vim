@@ -67,6 +67,7 @@ if has('nvim')
     else
       call termopen(s:ranger_command . ' --choosefiles=' . s:choice_file_path . ' --selectfile="' . currentPath . '"', rangerCallback)
     endif
+    setfiletype rnvimr
     startinsert
   endfunction
 else
