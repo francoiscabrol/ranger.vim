@@ -10,13 +10,13 @@ Installation
 
 Install it with your favorite plugin manager. Example with vim-plug:
 
-        Plug 'francoiscabrol/ranger.vim'
+    Plug 'francoiscabrol/ranger.vim'
 
 If you use neovim, you have to add the dependency to the plugin bclose.vim:
 
-        Plug 'rbgrouleff/bclose.vim'
+    Plug 'rbgrouleff/bclose.vim'
 
-lazy.vim lua example
+lazy.vim lua configuration example
 ```lua
 {
   "zeioth/ranger.vim",
