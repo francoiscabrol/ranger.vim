@@ -37,7 +37,8 @@ lazy.vim lua example
   init = function()
     vim.g.ranger_map_keys = 0
      
-    -- Change this to your terminal in case you wanna call a terminal from inside ranger.
+    -- Change terminal and TERMCMD to enable this feature:
+    -- Calling a terminal from inside ranger.
     vim.g.ranger_terminal = 'foot'
     vim.g.ranger_command_override = 'LC_ALL=es_ES.UTF8 TERMCMD="foot -a \"scratchpad\"" ranger'
   end
