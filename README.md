@@ -1,3 +1,8 @@
+# ARCHIVED
+Please if you are on neovim use [rnvimr](https://github.com/kevinhwang91/rnvimr) instead, which now implements full mouse support (unlike this, that onlyl enables mousewheeel).
+
+If you are on vim, refer to upstream [ranger.vim](https://github.com/francoiscabrol/ranger.vim)
+
 Ranger.vim
 ==========
 
