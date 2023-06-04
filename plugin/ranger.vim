@@ -67,6 +67,7 @@ if has('nvim')
     else
       call termopen(s:ranger_command . ' --choosefiles=' . s:choice_file_path . ' --selectfile="' . currentPath . '"', rangerCallback)
     endif
+    setfiletype rangervim
     startinsert
   endfunction
 else
@@ -139,3 +140,34 @@ if !exists('g:ranger_map_keys') || g:ranger_map_keys
   map <leader>f :Ranger<CR>
 endif
 
+"----------------------------------------------------------------------------------------------"
+" HACK: Enable mouse scroll support on neovim"
+" Credits: kevinhwang91 → https://github.com/kevinhwang91/rnvimr/issues/58
+"----------------------------------------------------------------------------------------------"
+function s:set_mouse_with_rnvimr() abort
+    let n_mouse = &mouse
+    augroup RnvimrMouse
+        autocmd!
+        autocmd FileType rnvimr call <SID>set_mouse_with_rnvimr()
+    augroup end
+
+    if match(n_mouse, '[a|h|n]') >= 0
+        augroup RnvimrMouse
+            autocmd TermEnter,WinEnter <buffer> call nvim_set_option('mouse', '')
+            execute printf("autocmd WinLeave <buffer> call nvim_set_option('mouse', '%s')", n_mouse)
+        augroup END
+    endif
+
+    if system('tmux display -p "#{mouse}"')[0]
+        augroup RnvimrMouse
+            autocmd TermEnter,WinEnter <buffer> call system('tmux set mouse off')
+            autocmd WinLeave <buffer> call system('tmux set mouse on')
+        augroup END
+    endif
+endfunction
+
+if has('nvim')
+  augroup RnvimrMouse
+      autocmd FileType rangervim call <SID>set_mouse_with_rnvimr()
+  augroup END
+endif
